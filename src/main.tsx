@@ -1,7 +1,7 @@
 import { createRoot } from 'react-dom/client'
 import App from 'src/App'
 import { Provider } from 'react-redux'
-import store from 'src/globals/store/redux/reduxStore.jsx'
+import store from 'src/globals/store/redux/reduxStore.tsx'
 
 import 'src/styles/index.css'
 

@@ -1,6 +1,6 @@
 import { ColumnDef } from '@tanstack/react-table'
 import { SSdataTable } from 'src/shared/components/table/SSdataTable.tsx'
-import { Button } from 'src/shared/lib/shadcn/components/ui/button'
+import { Button } from '@repo/fe-ui/button'
 import {
     DropdownMenu,
     DropdownMenuContent,
