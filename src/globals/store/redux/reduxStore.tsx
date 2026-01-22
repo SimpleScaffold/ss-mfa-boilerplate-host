@@ -4,15 +4,17 @@ import { all } from 'redux-saga/effects'
 import { routerSaga, routerSlice } from 'src/globals/router/routerReducer.tsx'
 import { sampleSaga, sampleSlice } from 'src/features/sample/sampleReducer.ts'
 import { themeSlice } from 'src/globals/theme/themeReducer.tsx'
+import { cesiumSaga, cesiumSlice } from 'src/globals/cesium/cesiumReducer'
 
 const reducers = {
     routerReducer: routerSlice.reducer,
     sampleReducer: sampleSlice.reducer,
     themeReducer: themeSlice.reducer,
+    cesiumReducer: cesiumSlice.reducer,
 }
 
 export function* rootSaga() {
-    yield all([sampleSaga(), routerSaga()])
+    yield all([sampleSaga(), routerSaga(), cesiumSaga()])
 }
 
 const sagaMiddleware = createSagaMiddleware()

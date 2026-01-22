@@ -7,6 +7,7 @@ import { federation } from '@module-federation/vite'
 import { listenForRemoteRebuilds } from '@antdevx/vite-plugin-hmr-sync'
 import { fileURLToPath } from 'url'
 import http from 'http'
+import { viteStaticCopy } from 'vite-plugin-static-copy'
 import {
     getHostConfig,
     getRemoteConfig,
@@ -127,6 +128,53 @@ function extractHostFromOrigin(origin: string): string {
     return match || 'localhost'
 }
 
+// Cesium 설정
+const cesiumSource = 'node_modules/cesium/Build/Cesium'
+const cesiumBaseUrl = 'cesiumStatic'
+
+// Cesium 정적 파일을 개발 서버에서 서빙하는 플러그인
+function cesiumStaticPlugin(): Plugin {
+    return {
+        name: 'cesium-static',
+        configureServer(server) {
+            server.middlewares.use(`/${cesiumBaseUrl}`, (req, res, next) => {
+                const url = req.url || ''
+                // 쿼리 스트링 제거
+                const cleanUrl = url.split('?')[0]
+                // /cesiumStatic/Workers/... -> Workers/...
+                const relativePath = cleanUrl.replace(`/${cesiumBaseUrl}/`, '')
+                
+                const cesiumFullPath = path.join(repoRoot, cesiumSource)
+                const filePath = path.join(cesiumFullPath, relativePath)
+
+                // 파일이 존재하는지 확인
+                if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+                    // MIME 타입 설정
+                    const ext = path.extname(filePath)
+                    const mimeTypes: Record<string, string> = {
+                        '.js': 'application/javascript',
+                        '.json': 'application/json',
+                        '.wasm': 'application/wasm',
+                        '.png': 'image/png',
+                        '.jpg': 'image/jpeg',
+                        '.jpeg': 'image/jpeg',
+                        '.gif': 'image/gif',
+                        '.svg': 'image/svg+xml',
+                        '.css': 'text/css',
+                        '.html': 'text/html',
+                    }
+                    const contentType = mimeTypes[ext] || 'application/octet-stream'
+                    res.setHeader('Content-Type', contentType)
+                    res.setHeader('Access-Control-Allow-Origin', '*')
+                    fs.createReadStream(filePath).pipe(res)
+                    return
+                }
+                next()
+            })
+        },
+    }
+}
+
 // https://vite.dev/config/
 export default defineConfig({
     build: {
@@ -175,6 +223,15 @@ export default defineConfig({
         fontPreloadPlugin(),
         copyRobotsTxt(),
         waitForRemote(),
+        cesiumStaticPlugin(),
+        viteStaticCopy({
+            targets: [
+                { src: `${cesiumSource}/ThirdParty`, dest: cesiumBaseUrl },
+                { src: `${cesiumSource}/Workers`, dest: cesiumBaseUrl },
+                { src: `${cesiumSource}/Assets`, dest: cesiumBaseUrl },
+                { src: `${cesiumSource}/Widgets`, dest: cesiumBaseUrl },
+            ],
+        }),
         ...(envMode === 'local'
             ? [
                   listenForRemoteRebuilds({
@@ -202,6 +259,9 @@ export default defineConfig({
             dts: false,
         }),
     ],
+    define: {
+        CESIUM_BASE_URL: JSON.stringify(cesiumBaseUrl),
+    },
     resolve: {
         alias: [
             {

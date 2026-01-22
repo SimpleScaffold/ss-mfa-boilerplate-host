@@ -1,4 +1,6 @@
 import { RemoteAppLoader, RemoteAppErrorBoundary, findRemoteAppById } from 'src/remotes'
+import { MapViewer } from 'src/globals/cesium/ui/MapViewer'
+import { MapControls } from 'src/globals/cesium/ui/MapControls'
 
 const Home = () => {
     // 리모트 앱 설정 가져오기
@@ -8,6 +10,12 @@ const Home = () => {
         <div className="p-4">
             <h1 className="text-2xl font-bold mb-4">Home</h1>
             
+            <div className="mb-6">
+                <h2 className="text-xl font-semibold mb-2">Cesium 지도</h2>
+                <MapControls className="mb-4" />
+                <MapViewer height="600px" />
+            </div>
+
             {remoteApp1 && (
                 <div className="mt-6">
                     <h2 className="text-xl font-semibold mb-4">{remoteApp1.name}</h2>
