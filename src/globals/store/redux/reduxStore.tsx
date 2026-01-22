@@ -3,7 +3,7 @@ import { configureStore, Tuple } from '@reduxjs/toolkit'
 import { all } from 'redux-saga/effects'
 import { routerSaga, routerSlice } from 'src/globals/router/routerReducer.tsx'
 import { sampleSaga, sampleSlice } from 'src/features/sample/sampleReducer.ts'
-import { themeSlice } from 'src/shared/components/theme/themeReducer.tsx'
+import { themeSlice } from 'src/globals/theme/themeReducer.tsx'
 
 const reducers = {
     routerReducer: routerSlice.reducer,
