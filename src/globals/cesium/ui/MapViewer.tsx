@@ -28,12 +28,18 @@ export const MapViewer = ({
     const containerRef = useRef<HTMLDivElement>(null)
     const viewerRef = useRef<Viewer | null>(null)
     const dispatch = useAppDispatch()
-    const { isInitialized, isLoading, error } = useAppSelector(
+    const { baseUrl, isInitialized, isLoading, error } = useAppSelector(
         (state) => state.cesiumReducer,
     )
 
     useEffect(() => {
         if (!containerRef.current) return
+
+        // Cesium baseUrl 초기화 (Redux에서 가져온 값으로 window 설정)
+        // Cesium 라이브러리가 window.CESIUM_BASE_URL을 읽기 때문
+        if (typeof window !== 'undefined' && baseUrl) {
+            ;(window as any).CESIUM_BASE_URL = baseUrl
+        }
 
         // 이미 Viewer가 초기화되어 있으면 재사용
         const existingViewer = cesiumViewerStore.getViewer()

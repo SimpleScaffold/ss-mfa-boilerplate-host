@@ -179,8 +179,10 @@ function cesiumStaticPlugin(): Plugin {
 export default defineConfig({
     build: {
         target: 'chrome89',
+        modulePreload: false,
         rollupOptions: {
             output: {
+                format: 'es',
                 manualChunks: {
                     // React 관련 모듈
                     'vendor-react': [
@@ -257,10 +259,19 @@ export default defineConfig({
             },
             shared: SHARED_DEPENDENCIES,
             dts: false,
+            dev: {
+                disableRuntimePlugins: false,
+            },
         }),
     ],
     define: {
         CESIUM_BASE_URL: JSON.stringify(cesiumBaseUrl),
+    },
+    optimizeDeps: {
+        exclude: ['@module-federation/runtime'],
+        esbuildOptions: {
+            target: 'esnext',
+        },
     },
     resolve: {
         alias: [

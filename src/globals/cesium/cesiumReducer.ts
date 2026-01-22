@@ -4,12 +4,20 @@ import { reduxMaker } from 'src/globals/store/redux/reduxUtils.ts'
 const prefix = 'cesium'
 
 const localState = {
+    baseUrl: typeof CESIUM_BASE_URL !== 'undefined' ? CESIUM_BASE_URL : '/cesiumStatic',
     isInitialized: false,
     isLoading: false,
     error: null as string | null,
 }
 
 const localReducers = {
+    setBaseUrl: (state: typeof localState, action: PayloadAction<string>) => {
+        state.baseUrl = action.payload
+        // Cesium 라이브러리 호환성을 위해 window에도 설정
+        if (typeof window !== 'undefined') {
+            ;(window as any).CESIUM_BASE_URL = action.payload
+        }
+    },
     setInitialized: (state: typeof localState, action: PayloadAction<boolean>) => {
         state.isInitialized = action.payload
     },
