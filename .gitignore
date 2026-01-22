@@ -8,3 +8,7 @@ dist-ssr
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+# Module Federation temporary files
+.__mf__temp
+__mf__temp

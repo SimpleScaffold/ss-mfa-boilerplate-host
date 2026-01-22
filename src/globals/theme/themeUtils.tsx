@@ -3,7 +3,7 @@ import { useContext } from 'react'
 import {
     Theme,
     ThemeContext,
-} from '@repo/fe-ui/theme'
+} from 'src/globals/theme/theme-provider.tsx'
 import store from 'src/globals/store/redux/reduxStore.tsx'
 import { themeAction } from 'src/globals/theme/themeReducer.tsx'
 
