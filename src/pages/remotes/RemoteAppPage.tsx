@@ -1,4 +1,4 @@
-import { useParams } from 'react-router'
+import { useLocation } from 'react-router'
 import { RemoteAppLoader, RemoteAppErrorBoundary, findRemoteAppByRoute } from 'src/remotes'
 
 /**
@@ -11,18 +11,18 @@ import { RemoteAppLoader, RemoteAppErrorBoundary, findRemoteAppByRoute } from 's
  * - /remote-app-2 -> remoteapp2 렌더링
  */
 const RemoteAppPage = () => {
-    const { '*': routePath } = useParams<{ '*': string }>()
-    const fullPath = routePath ? `/${routePath}` : '/'
+    const location = useLocation()
+    const currentPath = location.pathname
 
     // 라우트 경로로 리모트 앱 설정 찾기
-    const remoteApp = findRemoteAppByRoute(fullPath)
+    const remoteApp = findRemoteAppByRoute(currentPath)
 
     if (!remoteApp) {
         return (
             <div className="p-4">
                 <h2 className="text-xl font-semibold mb-2">리모트 앱을 찾을 수 없습니다</h2>
                 <p className="text-gray-600">
-                    경로 <code className="bg-gray-100 px-2 py-1 rounded">{fullPath}</code>에
+                    경로 <code className="bg-gray-100 px-2 py-1 rounded">{currentPath}</code>에
                     해당하는 리모트 앱이 설정되지 않았습니다.
                 </p>
             </div>
