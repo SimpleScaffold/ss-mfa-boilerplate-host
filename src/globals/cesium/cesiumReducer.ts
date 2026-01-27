@@ -10,12 +10,19 @@ const localState = {
     error: null as string | null,
 }
 
+// Window 인터페이스 확장
+declare global {
+    interface Window {
+        CESIUM_BASE_URL?: string
+    }
+}
+
 const localReducers = {
     setBaseUrl: (state: typeof localState, action: PayloadAction<string>) => {
         state.baseUrl = action.payload
         // Cesium 라이브러리 호환성을 위해 window에도 설정
         if (typeof window !== 'undefined') {
-            ;(window as any).CESIUM_BASE_URL = action.payload
+            window.CESIUM_BASE_URL = action.payload
         }
     },
     setInitialized: (state: typeof localState, action: PayloadAction<boolean>) => {
