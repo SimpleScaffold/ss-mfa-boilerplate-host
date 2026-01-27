@@ -12,3 +12,9 @@ dist-ssr
 # Module Federation temporary files
 .__mf__temp
 __mf__temp
+
+
+**/.turbo
+**/.turbo/**
+*.turbo.log
+turbo-*.log
