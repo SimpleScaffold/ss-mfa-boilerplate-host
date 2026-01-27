@@ -129,7 +129,7 @@ function extractHostFromOrigin(origin: string): string {
 }
 
 // Cesium 설정
-const cesiumSource = 'node_modules/cesium/Build/Cesium'
+const cesiumSource = path.join(repoRoot, 'node_modules/cesium/Build/Cesium')
 const cesiumBaseUrl = 'cesiumStatic'
 
 // Cesium 정적 파일을 개발 서버에서 서빙하는 플러그인
@@ -144,8 +144,7 @@ function cesiumStaticPlugin(): Plugin {
                 // /cesiumStatic/Workers/... -> Workers/...
                 const relativePath = cleanUrl.replace(`/${cesiumBaseUrl}/`, '')
                 
-                const cesiumFullPath = path.join(repoRoot, cesiumSource)
-                const filePath = path.join(cesiumFullPath, relativePath)
+                const filePath = path.join(cesiumSource, relativePath)
 
                 // 파일이 존재하는지 확인
                 if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
@@ -228,10 +227,10 @@ export default defineConfig({
         cesiumStaticPlugin(),
         viteStaticCopy({
             targets: [
-                { src: `${cesiumSource}/ThirdParty`, dest: cesiumBaseUrl },
-                { src: `${cesiumSource}/Workers`, dest: cesiumBaseUrl },
-                { src: `${cesiumSource}/Assets`, dest: cesiumBaseUrl },
-                { src: `${cesiumSource}/Widgets`, dest: cesiumBaseUrl },
+                { src: path.join(cesiumSource, 'ThirdParty'), dest: cesiumBaseUrl },
+                { src: path.join(cesiumSource, 'Workers'), dest: cesiumBaseUrl },
+                { src: path.join(cesiumSource, 'Assets'), dest: cesiumBaseUrl },
+                { src: path.join(cesiumSource, 'Widgets'), dest: cesiumBaseUrl },
             ],
         }),
         ...(envMode === 'local'
