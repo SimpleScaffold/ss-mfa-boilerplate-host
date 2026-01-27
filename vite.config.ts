@@ -35,7 +35,7 @@ const REMOTE_APP_URLS = {
 function waitForRemoteApp(
     remoteUrl: string,
     maxRetries = MAX_RETRIES,
-    delay = RETRY_DELAY_MS
+    delay = RETRY_DELAY_MS,
 ): Promise<void> {
     return new Promise((resolve) => {
         let retryCount = 0
@@ -49,8 +49,8 @@ function waitForRemoteApp(
                         } else {
                             reject(
                                 new Error(
-                                    `HTTP ${response.statusCode ?? 'unknown'}`
-                                )
+                                    `HTTP ${response.statusCode ?? 'unknown'}`,
+                                ),
                             )
                         }
                     })
@@ -73,7 +73,7 @@ function waitForRemoteApp(
 
                 if (retryCount >= maxRetries) {
                     console.warn(
-                        '⚠ Remote app did not become ready, continuing anyway...'
+                        '⚠ Remote app did not become ready, continuing anyway...',
                     )
                     resolve()
                     return
@@ -143,7 +143,7 @@ function cesiumStaticPlugin(): Plugin {
                 const cleanUrl = url.split('?')[0]
                 // /cesiumStatic/Workers/... -> Workers/...
                 const relativePath = cleanUrl.replace(`/${cesiumBaseUrl}/`, '')
-                
+
                 const filePath = path.join(cesiumSource, relativePath)
 
                 // 파일이 존재하는지 확인
@@ -162,7 +162,8 @@ function cesiumStaticPlugin(): Plugin {
                         '.css': 'text/css',
                         '.html': 'text/html',
                     }
-                    const contentType = mimeTypes[ext] || 'application/octet-stream'
+                    const contentType =
+                        mimeTypes[ext] || 'application/octet-stream'
                     res.setHeader('Content-Type', contentType)
                     res.setHeader('Access-Control-Allow-Origin', '*')
                     fs.createReadStream(filePath).pipe(res)
@@ -227,10 +228,19 @@ export default defineConfig({
         cesiumStaticPlugin(),
         viteStaticCopy({
             targets: [
-                { src: path.join(cesiumSource, 'ThirdParty'), dest: cesiumBaseUrl },
-                { src: path.join(cesiumSource, 'Workers'), dest: cesiumBaseUrl },
+                {
+                    src: path.join(cesiumSource, 'ThirdParty'),
+                    dest: cesiumBaseUrl,
+                },
+                {
+                    src: path.join(cesiumSource, 'Workers'),
+                    dest: cesiumBaseUrl,
+                },
                 { src: path.join(cesiumSource, 'Assets'), dest: cesiumBaseUrl },
-                { src: path.join(cesiumSource, 'Widgets'), dest: cesiumBaseUrl },
+                {
+                    src: path.join(cesiumSource, 'Widgets'),
+                    dest: cesiumBaseUrl,
+                },
             ],
         }),
         ...(envMode === 'local'
@@ -308,7 +318,10 @@ function fontPreloadPlugin(): Plugin {
         transformIndexHtml: {
             order: 'pre',
             handler(html) {
-                const fontDir = path.resolve(__dirname, '../../../../packages/fe/ui/src/assets/fonts')
+                const fontDir = path.resolve(
+                    __dirname,
+                    '../../../../packages/fe/ui/src/assets/fonts',
+                )
                 const preloadLinks: string[] = []
                 const usedFonts = getUsedFonts(html)
 

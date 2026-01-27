@@ -1,9 +1,6 @@
 // 테마 관련 유틸리티 함수들
 import { useContext } from 'react'
-import {
-    Theme,
-    ThemeContext,
-} from 'src/globals/theme/theme-provider.tsx'
+import { Theme, ThemeContext } from 'src/globals/theme/theme-provider.tsx'
 import store from 'src/globals/store/redux/reduxStore.tsx'
 import { themeAction } from 'src/globals/theme/themeReducer.tsx'
 

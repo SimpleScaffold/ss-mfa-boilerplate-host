@@ -8,7 +8,7 @@ export interface MapControlsProps {
 
 /**
  * Cesium Map Controls 컴포넌트
- * 
+ *
  * 지도 제어 버튼들을 제공합니다.
  */
 export const MapControls = ({ className = '' }: MapControlsProps) => {
@@ -33,28 +33,28 @@ export const MapControls = ({ className = '' }: MapControlsProps) => {
     }, [])
 
     return (
-        <div className={`flex gap-2 flex-wrap ${className}`}>
+        <div className={`flex flex-wrap gap-2 ${className}`}>
             <button
                 onClick={handleFlyToSeoul}
-                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                className="rounded bg-blue-500 px-4 py-2 text-white transition-colors hover:bg-blue-600"
             >
                 서울로 이동
             </button>
             <button
                 onClick={handleFlyToTokyo}
-                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                className="rounded bg-blue-500 px-4 py-2 text-white transition-colors hover:bg-blue-600"
             >
                 도쿄로 이동
             </button>
             <button
                 onClick={handleFlyToNewYork}
-                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                className="rounded bg-blue-500 px-4 py-2 text-white transition-colors hover:bg-blue-600"
             >
                 뉴욕으로 이동
             </button>
             <button
                 onClick={handleResetView}
-                className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
+                className="rounded bg-gray-500 px-4 py-2 text-white transition-colors hover:bg-gray-600"
             >
                 전체 보기
             </button>

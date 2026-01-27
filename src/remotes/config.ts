@@ -1,6 +1,6 @@
 /**
  * 리모트 앱 설정 관리
- * 
+ *
  * 각 리모트 앱의 메타데이터와 라우트 매핑을 중앙에서 관리합니다.
  */
 
@@ -23,7 +23,7 @@ export type RemoteAppConfig = {
 
 /**
  * 리모트 앱 설정 목록
- * 
+ *
  * 새로운 리모트 앱을 추가할 때 여기에 설정을 추가하면
  * 자동으로 라우트와 로더가 생성됩니다.
  */
@@ -67,7 +67,7 @@ export const getEnabledRemoteApps = (): RemoteAppConfig[] => {
  * 라우트 경로로 리모트 앱 찾기
  */
 export const findRemoteAppByRoute = (
-    routePath: string
+    routePath: string,
 ): RemoteAppConfig | undefined => {
     return REMOTE_APPS.find((app) => app.routePath === routePath)
 }
@@ -75,8 +75,6 @@ export const findRemoteAppByRoute = (
 /**
  * 리모트 앱 ID로 설정 찾기
  */
-export const findRemoteAppById = (
-    id: string
-): RemoteAppConfig | undefined => {
+export const findRemoteAppById = (id: string): RemoteAppConfig | undefined => {
     return REMOTE_APPS.find((app) => app.id === id)
 }

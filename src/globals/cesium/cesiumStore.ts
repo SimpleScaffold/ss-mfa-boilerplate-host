@@ -2,7 +2,7 @@ import type { CesiumViewer } from './cesiumTypes'
 
 /**
  * Cesium Viewer 인스턴스를 전역으로 저장하는 저장소
- * 
+ *
  * Viewer는 복잡한 DOM 객체이므로 Redux state에 저장하지 않고
  * 별도의 저장소에서 관리합니다.
  */

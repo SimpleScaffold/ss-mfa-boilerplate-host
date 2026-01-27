@@ -35,12 +35,12 @@ const generateRoutes = (
 
 /**
  * 리모트 앱 라우트 생성
- * 
+ *
  * config.ts에 정의된 리모트 앱 설정을 기반으로 라우트를 자동 생성합니다.
  */
 const generateRemoteAppRoutes = (): RouteObject[] => {
     const enabledApps = getEnabledRemoteApps()
-    
+
     return enabledApps.map((app) => ({
         path: app.routePath,
         element: <RemoteAppPage />,
@@ -54,7 +54,7 @@ const router = createBrowserRouter([
     },
 
     ...generateRoutes(MODULES),
-    
+
     // 리모트 앱 라우트 자동 생성
     ...generateRemoteAppRoutes(),
 

@@ -27,12 +27,12 @@ src/
 export const REMOTE_APPS: RemoteAppConfig[] = [
     // 기존 설정들...
     {
-        id: 'remoteapp3',                    // vite.config.ts의 remotes 키와 일치
-        name: 'Remote App 3',                // 표시 이름
-        routePath: '/remote-app-3',          // 라우트 경로
+        id: 'remoteapp3', // vite.config.ts의 remotes 키와 일치
+        name: 'Remote App 3', // 표시 이름
+        routePath: '/remote-app-3', // 라우트 경로
         modulePath: 'remoteapp3/RemoteApp3', // 모듈 경로
-        fullPage: true,                      // 전체 페이지 여부
-        enabled: true,                       // 활성화 여부
+        fullPage: true, // 전체 페이지 여부
+        enabled: true, // 활성화 여부
     },
 ]
 ```
@@ -42,13 +42,17 @@ export const REMOTE_APPS: RemoteAppConfig[] = [
 리모트 앱을 전체 페이지가 아닌 특정 컴포넌트 내부에 렌더링하려면:
 
 ```tsx
-import { RemoteAppLoader, RemoteAppErrorBoundary, findRemoteAppById } from 'src/remotes'
+import {
+    RemoteAppLoader,
+    RemoteAppErrorBoundary,
+    findRemoteAppById,
+} from 'src/remotes'
 
 function MyPage() {
     const remoteApp = findRemoteAppById('remoteapp1')
-    
+
     if (!remoteApp) return null
-    
+
     return (
         <div>
             <h1>My Page</h1>
@@ -65,7 +69,7 @@ function MyPage() {
 ### 3. 리모트 앱에 Props 전달하기
 
 ```tsx
-<RemoteAppLoader 
+<RemoteAppLoader
     config={remoteApp}
     props={{
         userId: '123',
@@ -78,15 +82,15 @@ function MyPage() {
 
 ### RemoteAppConfig
 
-| 필드 | 타입 | 설명 | 필수 |
-|------|------|------|------|
-| `id` | `string` | 리모트 앱 식별자 (vite.config.ts의 remotes 키와 일치) | ✅ |
-| `name` | `string` | 리모트 앱 표시 이름 | ✅ |
-| `routePath` | `string` | 리모트 앱이 렌더링될 라우트 경로 | ✅ |
-| `modulePath` | `string` | 리모트 앱 모듈 경로 (예: 'remoteapp1/RemoteApp1') | ✅ |
-| `fullPage` | `boolean` | 리모트 앱이 전체 페이지를 차지하는지 여부 | ❌ |
-| `layoutSlot` | `'main' \| 'sidebar' \| 'header' \| 'footer'` | 레이아웃 영역 지정 | ❌ |
-| `enabled` | `boolean` | 리모트 앱 활성화 여부 (기본값: true) | ❌ |
+| 필드         | 타입                                          | 설명                                                  | 필수 |
+| ------------ | --------------------------------------------- | ----------------------------------------------------- | ---- |
+| `id`         | `string`                                      | 리모트 앱 식별자 (vite.config.ts의 remotes 키와 일치) | ✅   |
+| `name`       | `string`                                      | 리모트 앱 표시 이름                                   | ✅   |
+| `routePath`  | `string`                                      | 리모트 앱이 렌더링될 라우트 경로                      | ✅   |
+| `modulePath` | `string`                                      | 리모트 앱 모듈 경로 (예: 'remoteapp1/RemoteApp1')     | ✅   |
+| `fullPage`   | `boolean`                                     | 리모트 앱이 전체 페이지를 차지하는지 여부             | ❌   |
+| `layoutSlot` | `'main' \| 'sidebar' \| 'header' \| 'footer'` | 레이아웃 영역 지정                                    | ❌   |
+| `enabled`    | `boolean`                                     | 리모트 앱 활성화 여부 (기본값: true)                  | ❌   |
 
 ## 🔄 동작 원리
 

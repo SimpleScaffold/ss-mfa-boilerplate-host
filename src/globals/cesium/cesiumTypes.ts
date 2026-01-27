@@ -9,7 +9,9 @@ export type CesiumViewer = Viewer
  * Cesium Viewer 초기화 옵션 타입
  * Viewer 생성자의 두 번째 파라미터 타입
  */
-export type CesiumViewerOptions = ConstructorParameters<typeof Viewer>[1] extends undefined
+export type CesiumViewerOptions = ConstructorParameters<
+    typeof Viewer
+>[1] extends undefined
     ? Record<string, never>
     : NonNullable<ConstructorParameters<typeof Viewer>[1]>
 

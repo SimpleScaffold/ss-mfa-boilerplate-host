@@ -2,7 +2,10 @@ import { useEffect, useRef } from 'react'
 import { Viewer } from 'cesium'
 import 'cesium/Build/Cesium/Widgets/widgets.css'
 import { cesiumConfig } from '../cesiumConfig'
-import { useAppDispatch, useAppSelector } from 'src/globals/store/redux/reduxHooks'
+import {
+    useAppDispatch,
+    useAppSelector,
+} from 'src/globals/store/redux/reduxHooks'
 import { cesiumAction } from '../cesiumReducer'
 import { cesiumViewerStore } from '../cesiumStore'
 import type { CesiumViewerOptions } from '../cesiumTypes'
@@ -16,7 +19,7 @@ export interface MapViewerProps {
 
 /**
  * Cesium Map Viewer 컴포넌트
- * 
+ *
  * Cesium 지도를 표시하는 메인 컴포넌트입니다.
  */
 export const MapViewer = ({
@@ -89,24 +92,26 @@ export const MapViewer = ({
     return (
         <div className={`relative ${className}`}>
             {isLoading && (
-                <div className="absolute inset-0 flex items-center justify-center bg-gray-100 bg-opacity-75 z-10">
+                <div className="bg-opacity-75 absolute inset-0 z-10 flex items-center justify-center bg-gray-100">
                     <div className="text-center">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-2"></div>
-                        <p className="text-gray-600 text-sm">지도 로딩 중...</p>
+                        <div className="mx-auto mb-2 h-8 w-8 animate-spin rounded-full border-b-2 border-gray-900"></div>
+                        <p className="text-sm text-gray-600">지도 로딩 중...</p>
                     </div>
                 </div>
             )}
             {error && (
-                <div className="absolute inset-0 flex items-center justify-center bg-red-100 bg-opacity-75 z-10">
-                    <div className="text-center p-4">
-                        <p className="text-red-600 text-sm font-semibold">오류 발생</p>
-                        <p className="text-red-500 text-xs mt-1">{error}</p>
+                <div className="bg-opacity-75 absolute inset-0 z-10 flex items-center justify-center bg-red-100">
+                    <div className="p-4 text-center">
+                        <p className="text-sm font-semibold text-red-600">
+                            오류 발생
+                        </p>
+                        <p className="mt-1 text-xs text-red-500">{error}</p>
                     </div>
                 </div>
             )}
             <div
                 ref={containerRef}
-                className="w-full rounded-lg overflow-hidden"
+                className="w-full overflow-hidden rounded-lg"
                 style={{ height }}
             />
         </div>

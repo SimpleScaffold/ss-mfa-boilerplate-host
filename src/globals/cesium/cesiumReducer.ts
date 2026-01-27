@@ -4,7 +4,10 @@ import { reduxMaker } from 'src/globals/store/redux/reduxUtils.ts'
 const prefix = 'cesium'
 
 const localState = {
-    baseUrl: typeof CESIUM_BASE_URL !== 'undefined' ? CESIUM_BASE_URL : '/cesiumStatic',
+    baseUrl:
+        typeof CESIUM_BASE_URL !== 'undefined'
+            ? CESIUM_BASE_URL
+            : '/cesiumStatic',
     isInitialized: false,
     isLoading: false,
     error: null as string | null,
@@ -25,13 +28,19 @@ const localReducers = {
             window.CESIUM_BASE_URL = action.payload
         }
     },
-    setInitialized: (state: typeof localState, action: PayloadAction<boolean>) => {
+    setInitialized: (
+        state: typeof localState,
+        action: PayloadAction<boolean>,
+    ) => {
         state.isInitialized = action.payload
     },
     setLoading: (state: typeof localState, action: PayloadAction<boolean>) => {
         state.isLoading = action.payload
     },
-    setError: (state: typeof localState, action: PayloadAction<string | null>) => {
+    setError: (
+        state: typeof localState,
+        action: PayloadAction<string | null>,
+    ) => {
         state.error = action.payload
     },
     reset: (state: typeof localState) => {

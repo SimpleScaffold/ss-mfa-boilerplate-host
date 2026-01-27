@@ -2,7 +2,6 @@ import { reduxMaker } from 'src/globals/store/redux/reduxUtils.ts'
 import { PayloadAction } from '@reduxjs/toolkit'
 import { colorGroups } from 'src/globals/theme/colorConstants.tsx'
 
-
 const prefix = 'theme'
 
 const asyncRequests = [] as const

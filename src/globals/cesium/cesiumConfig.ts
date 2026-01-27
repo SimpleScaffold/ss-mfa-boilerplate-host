@@ -3,7 +3,7 @@ import type { CesiumViewerOptions } from './cesiumTypes'
 
 /**
  * Cesium 설정 파일
- * 
+ *
  * baseUrl은 Redux state에서 관리됩니다.
  * cesiumReducer의 초기 state에서 설정됩니다.
  */
