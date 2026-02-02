@@ -31,7 +31,7 @@ export const MapViewer = ({
     const containerRef = useRef<HTMLDivElement>(null)
     const viewerRef = useRef<Viewer | null>(null)
     const dispatch = useAppDispatch()
-    const { baseUrl, isInitialized, isLoading, error } = useAppSelector(
+    const { baseUrl, isLoading, error } = useAppSelector(
         (state) => state.cesiumReducer,
     )
 
