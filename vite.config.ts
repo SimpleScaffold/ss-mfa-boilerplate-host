@@ -64,7 +64,7 @@ function waitForRemoteApp(
 
                 console.log('✓ Remote app is ready')
                 resolve()
-            } catch (error) {
+            } catch {
                 retryCount++
 
                 if (retryCount === 1) {
@@ -178,7 +178,7 @@ function cesiumStaticPlugin(): Plugin {
 // https://vite.dev/config/
 export default defineConfig({
     build: {
-        target: 'chrome89',
+        target: 'chrome107',
         modulePreload: false,
         rollupOptions: {
             output: {

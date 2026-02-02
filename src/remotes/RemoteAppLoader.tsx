@@ -59,7 +59,7 @@ export function RemoteAppLoader({
                 throw error
             })
         }) as ComponentType<Record<string, unknown>>
-    }, [config.modulePath, errorFallback])
+    }, [config.modulePath, config.id, errorFallback])
 
     return (
         <Suspense fallback={fallback}>
