@@ -188,7 +188,7 @@ export default defineConfig({
                     'vendor-react': [
                         'react',
                         'react-dom',
-                        'scheduler',
+                        // 'scheduler',
                         'react/jsx-runtime',
                     ],
                     // Redux 관련 모듈
@@ -199,12 +199,13 @@ export default defineConfig({
                         'redux-saga',
                     ],
                     // i18n 관련 모듈
-                    'vendor-i18n': ['i18next', 'react-i18next'],
+                    // 'vendor-i18n': ['i18next', 'react-i18next'],
                     // 애니메이션 관련 모듈
-                    'vendor-motion': ['framer-motion'],
+                    // 'vendor-motion': ['framer-motion'],
                     // 아이콘 관련 모듈
                     'vendor-icons': ['lucide-react'],
                     // Radix UI 관련 모듈
+                    /*
                     'vendor-radix': [
                         '@radix-ui/react-dialog',
                         '@radix-ui/react-label',
@@ -215,6 +216,7 @@ export default defineConfig({
                         '@radix-ui/react-tabs',
                         '@radix-ui/react-tooltip',
                     ],
+                    */
                 },
             },
         },
