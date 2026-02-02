@@ -48,7 +48,7 @@ const useRouteListener = () => {
 
     useLayoutEffect(() => {
         dispatch(routerAction.locationChange(route))
-    }, [route])
+    }, [route, dispatch])
 }
 
 export default useRouteListener
