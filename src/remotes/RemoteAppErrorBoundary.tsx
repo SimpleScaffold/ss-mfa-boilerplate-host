@@ -16,6 +16,7 @@ interface RemoteAppErrorBoundaryState {
  * 리모트 앱 에러 바운더리
  *
  * 리모트 앱 로딩 또는 실행 중 발생하는 에러를 캐치하여 처리합니다.
+ * "다시 시도" 클릭 시 전체 새로고침으로 복구합니다.
  */
 export class RemoteAppErrorBoundary extends Component<
     RemoteAppErrorBoundaryProps,
@@ -44,6 +45,11 @@ export class RemoteAppErrorBoundary extends Component<
         )
     }
 
+    handleRetry = (): void => {
+        // lazy 로드 실패는 같은 import() 재호출로는 복구되지 않으므로 전체 새로고침
+        window.location.reload()
+    }
+
     render() {
         if (this.state.hasError && this.state.error) {
             if (this.props.fallback) {
@@ -60,9 +66,7 @@ export class RemoteAppErrorBoundary extends Component<
                             '알 수 없는 오류가 발생했습니다.'}
                     </p>
                     <button
-                        onClick={() =>
-                            this.setState({ hasError: false, error: null })
-                        }
+                        onClick={this.handleRetry}
                         className="mt-2 rounded bg-red-600 px-4 py-2 text-white hover:bg-red-700"
                     >
                         다시 시도
