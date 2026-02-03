@@ -1,0 +1,19 @@
+node_modules
+dist
+dist-ssr
+.yarn/*
+!.yarn/cache
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
+# Module Federation temporary files
+.__mf__temp
+__mf__temp
+
+**/.turbo
+**/.turbo/**
+*.turbo.log
+turbo-*.log
