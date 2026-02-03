@@ -2,7 +2,10 @@
  * 리모트 앱 설정 관리
  *
  * 각 리모트 앱의 메타데이터와 라우트 매핑을 중앙에서 관리합니다.
+ * local.ts의 설정을 기반으로 dev 시작 시 자동 생성된 파일을 사용합니다.
  */
+
+import { REMOTE_APPS } from './generated-remote-config'
 
 export type RemoteAppConfig = {
     /** 리모트 앱 식별자 (vite.config.ts의 remotes 키와 일치) */
@@ -24,37 +27,10 @@ export type RemoteAppConfig = {
 /**
  * 리모트 앱 설정 목록
  *
- * 새로운 리모트 앱을 추가할 때 여기에 설정을 추가하면
- * 자동으로 라우트와 로더가 생성됩니다.
+ * local.ts의 설정을 기반으로 동적으로 생성됩니다.
+ * 새로운 리모트 앱을 추가하려면 local.ts의 remotes 배열에 추가하세요.
  */
-export const REMOTE_APPS: RemoteAppConfig[] = [
-    {
-        id: 'remoteapp1',
-        name: 'Remote App 1',
-        routePath: '/remote-app-1',
-        modulePath: 'remoteapp1/RemoteApp1',
-        fullPage: true,
-        enabled: true,
-    },
-    {
-        id: 'remoteapp2',
-        name: 'Remote App 2',
-        routePath: '/remote-app-2',
-        modulePath: 'remoteapp2/RemoteApp2',
-        fullPage: true,
-        enabled: true,
-    },
-    // 새로운 리모트 앱 추가 예시:
-    // {
-    //     id: 'remoteapp3',
-    //     name: 'Remote App 3',
-    //     routePath: '/remote-app-3',
-    //     modulePath: 'remoteapp3/RemoteApp3',
-    //     fullPage: false,
-    //     layoutSlot: 'main',
-    //     enabled: true,
-    // },
-]
+export { REMOTE_APPS }
 
 /**
  * 활성화된 리모트 앱만 필터링

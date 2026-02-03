@@ -1,5 +1,6 @@
 import { Suspense, lazy, ComponentType, useMemo } from 'react'
 import { RemoteAppConfig } from './config'
+import { loadRemoteModule } from './generated-remote-imports'
 
 interface RemoteAppLoaderProps {
     /** 리모트 앱 설정 */
@@ -12,27 +13,9 @@ interface RemoteAppLoaderProps {
     props?: Record<string, unknown>
 }
 
-/**
- * 리모트 앱 모듈을 동적으로 로드하는 함수
- *
- * Module Federation은 빌드 타임에 모듈 경로를 인식해야 하므로,
- * 리모트 앱 ID에 따라 정적으로 import를 분기합니다.
- */
-function loadRemoteModule(modulePath: string) {
-    // 리모트 앱 ID에 따라 정적으로 import 분기
-    // 이렇게 하면 빌드 타임에 Module Federation이 모듈을 인식할 수 있습니다
-    if (modulePath === 'remoteapp1/RemoteApp1') {
-        return import('remoteapp1/RemoteApp1')
-    }
-    if (modulePath === 'remoteapp2/RemoteApp2') {
-        return import('remoteapp2/RemoteApp2')
-    }
-
-    // 알 수 없는 모듈 경로인 경우 에러
-    return Promise.reject(
-        new Error(`Unknown remote module path: ${modulePath}`),
-    )
-}
+// NOTE:
+// Module Federation은 빌드 타임에 모듈 경로를 인식해야 하므로,
+// 실제 import 분기(정적 import)는 `generated-remote-imports.ts`에서 자동 생성합니다.
 
 /**
  * 리모트 앱 동적 로더 컴포넌트

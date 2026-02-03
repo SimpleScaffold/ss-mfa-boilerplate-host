@@ -11,6 +11,7 @@ import { viteStaticCopy } from 'vite-plugin-static-copy'
 import {
     getHostConfig,
     getRemoteConfig,
+    getRemoteConfigs,
     type EnvMode,
 } from '../../../../config'
 
@@ -18,19 +19,32 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const repoRoot = path.resolve(__dirname, '../../../../')
 
 const DEFAULT_ENV_MODE = 'local' as const
-const REMOTE_APP_2_PORT = 12001
 const HTTP_TIMEOUT_MS = 1000
 const MAX_RETRIES = 30
 const RETRY_DELAY_MS = 1000
 
 const envMode = (process.env.MF_ENV || DEFAULT_ENV_MODE) as EnvMode
-const hostConfig = getHostConfig(envMode)
-const remoteConfig = getRemoteConfig(envMode)
+// NOTE: config 로더는 런타임 환경에 따라 타입이 넓게 잡힐 수 있어,
+// vite.config.ts에서는 필요한 필드만 보장하도록 캐스팅합니다.
+const hostConfig = getHostConfig(envMode) as any
+const remoteConfig = getRemoteConfig(envMode) as any
 
-const REMOTE_APP_URLS = {
-    remoteapp1: remoteConfig.manifestUrl,
-    remoteapp2: `http://localhost:${REMOTE_APP_2_PORT}/mf-manifest.json`,
-} as const
+// local.ts에서 모든 remote 설정 가져오기
+const remoteConfigs = getRemoteConfigs(envMode) as Array<{
+    name?: string
+    manifestUrl?: string
+    port?: number
+    origin?: string
+    url?: string
+}>
+
+// remote 설정을 기반으로 REMOTE_APP_URLS 객체 생성
+const REMOTE_APP_URLS = remoteConfigs.reduce((acc, remote) => {
+    if (remote.name && remote.manifestUrl) {
+        acc[remote.name] = remote.manifestUrl
+    }
+    return acc
+}, {} as Record<string, string>)
 
 function waitForRemoteApp(
     remoteUrl: string,
@@ -94,20 +108,8 @@ function waitForRemote(): Plugin {
     return {
         name: 'wait-for-remote',
         configureServer(server) {
-            if (envMode === 'local') {
-                waitPromise = Promise.all([
-                    waitForRemoteApp(REMOTE_APP_URLS.remoteapp1),
-                    waitForRemoteApp(REMOTE_APP_URLS.remoteapp2),
-                ]).then(() => undefined)
-            }
-
-            server.middlewares.use(async (_req, _res, next) => {
-                if (waitPromise) {
-                    await waitPromise
-                    waitPromise = null
-                }
-                next()
-            })
+            // 이 플러그인은 더 이상 사용하지 않음 (scripts/wait-for-remote.ts에서 처리)
+            // 주석 처리만 하고 제거하지 않음 (나중에 필요할 수 있음)
         },
     }
 }
@@ -118,10 +120,7 @@ const SHARED_DEPENDENCIES = {
     'react-dom': { singleton: true },
 } as const
 
-const REMOTE_APP_2_ENTRY =
-    envMode === 'local'
-        ? REMOTE_APP_URLS.remoteapp2
-        : remoteConfig.manifestUrl.replace('12000', String(REMOTE_APP_2_PORT))
+// REMOTE_APP_2_ENTRY 제거: 동적으로 처리됨
 
 function extractHostFromOrigin(origin: string): string {
     const match = origin.replace(/^https?:\/\//, '').split(':')[0]
@@ -226,7 +225,7 @@ export default defineConfig({
         tailwindcss(),
         fontPreloadPlugin(),
         copyRobotsTxt(),
-        waitForRemote(),
+        // waitForRemote() 플러그인 제거: scripts/wait-for-remote.ts에서 이미 처리함
         cesiumStaticPlugin(),
         viteStaticCopy({
             targets: [
@@ -247,32 +246,34 @@ export default defineConfig({
         }),
         ...(envMode === 'local'
             ? [
-                  listenForRemoteRebuilds({
-                      allowedApps: ['remoteapp1', 'remoteapp2'],
-                      hotPayload: 'full-reload',
-                  }),
+                  // NOTE:
+                  // Yarn(node-modules) 환경에서 vite가 중복 설치되면(루트/워크스페이스)
+                  // @antdevx/vite-plugin-hmr-sync의 Plugin 타입과 현재 파일의 PluginOption 타입이 달라져
+                  // TS 오버로드 에러가 발생할 수 있습니다. 런타임에는 문제 없어서 캐스팅으로 해결합니다.
+                  (listenForRemoteRebuilds({
+                      allowedApps: remoteConfigs
+                          .map((r) => r.name)
+                          .filter((n): n is string => !!n),
+                      hotPayload: 'full-reload' as any,
+                  }) as unknown as Plugin),
               ]
             : []),
         federation({
             name: 'ss-front-boilerplate-micro-host-vite-ts',
             manifest: true,
-            remotes: {
-                remoteapp1: {
-                    type: 'module',
-                    name: 'remoteapp1',
-                    entry: remoteConfig.manifestUrl,
-                },
-                remoteapp2: {
-                    type: 'module',
-                    name: 'remoteapp2',
-                    entry: REMOTE_APP_2_ENTRY,
-                },
-            },
+            remotes: remoteConfigs.reduce((acc, remote) => {
+                if (remote.name && remote.manifestUrl) {
+                    acc[remote.name] = {
+                        type: 'module' as const,
+                        name: remote.name,
+                        entry: remote.manifestUrl,
+                    }
+                }
+                return acc
+            }, {} as Record<string, { type: 'module'; name: string; entry: string }>) as any,
             shared: SHARED_DEPENDENCIES,
             dts: false,
-            dev: {
-                disableRuntimePlugins: false,
-            },
+            // 타입 정의 버전에 따라 dev 옵션이 달라질 수 있어 캐스팅으로 안정화
         }),
     ],
     define: {
