@@ -168,26 +168,32 @@ export default defineConfig({
                   // Yarn(node-modules) 환경에서 vite가 중복 설치되면(루트/워크스페이스)
                   // @antdevx/vite-plugin-hmr-sync의 Plugin 타입과 현재 파일의 PluginOption 타입이 달라져
                   // TS 오버로드 에러가 발생할 수 있습니다. 런타임에는 문제 없어서 캐스팅으로 해결합니다.
-                  (listenForRemoteRebuilds({
+                  listenForRemoteRebuilds({
                       allowedApps: remoteConfigs
                           .map((r) => r.name)
                           .filter((n): n is string => !!n),
-                  }) as unknown as Plugin),
+                  }) as unknown as Plugin,
               ]
             : []),
         federation({
             name: 'ss-front-boilerplate-micro-host-vite-ts',
             manifest: true,
-            remotes: remoteConfigs.reduce((acc, remote) => {
-                if (remote.name && remote.manifestUrl) {
-                    acc[remote.name] = {
-                        type: 'module' as const,
-                        name: remote.name,
-                        entry: remote.manifestUrl,
+            remotes: remoteConfigs.reduce(
+                (acc, remote) => {
+                    if (remote.name && remote.manifestUrl) {
+                        acc[remote.name] = {
+                            type: 'module' as const,
+                            name: remote.name,
+                            entry: remote.manifestUrl,
+                        }
                     }
-                }
-                return acc
-            }, {} as Record<string, { type: 'module'; name: string; entry: string }>),
+                    return acc
+                },
+                {} as Record<
+                    string,
+                    { type: 'module'; name: string; entry: string }
+                >,
+            ),
             shared: SHARED_DEPENDENCIES,
             dts: false,
             // 타입 정의 버전에 따라 dev 옵션이 달라질 수 있어 캐스팅으로 안정화

@@ -33,15 +33,20 @@ function getErrorMessage(error: unknown): string {
     }
 }
 
-function loadRemoteModuleWithRetry(modulePath: string): Promise<{ default: ComponentType<Record<string, unknown>> }> {
+function loadRemoteModuleWithRetry(
+    modulePath: string,
+): Promise<{ default: ComponentType<Record<string, unknown>> }> {
     let lastError: unknown
-    const attempt = (attemptNum: number): Promise<{ default: ComponentType<Record<string, unknown>> }> => {
+    const attempt = (
+        attemptNum: number,
+    ): Promise<{ default: ComponentType<Record<string, unknown>> }> => {
         return loadRemoteModule(modulePath).catch((err: unknown) => {
             lastError = err
-            if (attemptNum >= REMOTE_LOAD_MAX_RETRIES) return Promise.reject(lastError)
-            return new Promise<void>((r) => setTimeout(r, REMOTE_LOAD_RETRY_DELAY_MS)).then(
-                () => attempt(attemptNum + 1),
-            )
+            if (attemptNum >= REMOTE_LOAD_MAX_RETRIES)
+                return Promise.reject(lastError)
+            return new Promise<void>((r) =>
+                setTimeout(r, REMOTE_LOAD_RETRY_DELAY_MS),
+            ).then(() => attempt(attemptNum + 1))
         })
     }
     return attempt(0)
