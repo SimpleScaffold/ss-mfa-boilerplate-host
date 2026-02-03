@@ -6,11 +6,9 @@ import fs, { copyFileSync } from 'fs'
 import { federation } from '@module-federation/vite'
 import { listenForRemoteRebuilds } from '@antdevx/vite-plugin-hmr-sync'
 import { fileURLToPath } from 'url'
-import http from 'http'
 import { viteStaticCopy } from 'vite-plugin-static-copy'
 import {
     getHostConfig,
-    getRemoteConfig,
     getRemoteConfigs,
     type EnvMode,
 } from '../../../../config'
@@ -19,15 +17,11 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const repoRoot = path.resolve(__dirname, '../../../../')
 
 const DEFAULT_ENV_MODE = 'local' as const
-const HTTP_TIMEOUT_MS = 1000
-const MAX_RETRIES = 30
-const RETRY_DELAY_MS = 1000
 
 const envMode = (process.env.MF_ENV || DEFAULT_ENV_MODE) as EnvMode
 // NOTE: config 로더는 런타임 환경에 따라 타입이 넓게 잡힐 수 있어,
 // vite.config.ts에서는 필요한 필드만 보장하도록 캐스팅합니다.
-const hostConfig = getHostConfig(envMode) as any
-const remoteConfig = getRemoteConfig(envMode) as any
+const hostConfig = getHostConfig(envMode) as { origin: string; port: number }
 
 // local.ts에서 모든 remote 설정 가져오기
 const remoteConfigs = getRemoteConfigs(envMode) as Array<{
@@ -37,82 +31,6 @@ const remoteConfigs = getRemoteConfigs(envMode) as Array<{
     origin?: string
     url?: string
 }>
-
-// remote 설정을 기반으로 REMOTE_APP_URLS 객체 생성
-const REMOTE_APP_URLS = remoteConfigs.reduce((acc, remote) => {
-    if (remote.name && remote.manifestUrl) {
-        acc[remote.name] = remote.manifestUrl
-    }
-    return acc
-}, {} as Record<string, string>)
-
-function waitForRemoteApp(
-    remoteUrl: string,
-    maxRetries = MAX_RETRIES,
-    delay = RETRY_DELAY_MS,
-): Promise<void> {
-    return new Promise((resolve) => {
-        let retryCount = 0
-
-        const attemptConnection = async (): Promise<void> => {
-            try {
-                await new Promise<void>((resolve, reject) => {
-                    const request = http.get(remoteUrl, (response) => {
-                        if (response.statusCode === 200) {
-                            resolve()
-                        } else {
-                            reject(
-                                new Error(
-                                    `HTTP ${response.statusCode ?? 'unknown'}`,
-                                ),
-                            )
-                        }
-                    })
-
-                    request.on('error', reject)
-                    request.setTimeout(HTTP_TIMEOUT_MS, () => {
-                        request.destroy()
-                        reject(new Error('Connection timeout'))
-                    })
-                })
-
-                console.log('✓ Remote app is ready')
-                resolve()
-            } catch {
-                retryCount++
-
-                if (retryCount === 1) {
-                    console.log('⏳ Waiting for remote app to be ready...')
-                }
-
-                if (retryCount >= maxRetries) {
-                    console.warn(
-                        '⚠ Remote app did not become ready, continuing anyway...',
-                    )
-                    resolve()
-                    return
-                }
-
-                await new Promise((resolve) => setTimeout(resolve, delay))
-                return attemptConnection()
-            }
-        }
-
-        attemptConnection()
-    })
-}
-
-function waitForRemote(): Plugin {
-    let waitPromise: Promise<void> | null = null
-
-    return {
-        name: 'wait-for-remote',
-        configureServer(server) {
-            // 이 플러그인은 더 이상 사용하지 않음 (scripts/wait-for-remote.ts에서 처리)
-            // 주석 처리만 하고 제거하지 않음 (나중에 필요할 수 있음)
-        },
-    }
-}
 
 const SHARED_DEPENDENCIES = {
     react: { singleton: true },
@@ -254,7 +172,6 @@ export default defineConfig({
                       allowedApps: remoteConfigs
                           .map((r) => r.name)
                           .filter((n): n is string => !!n),
-                      hotPayload: 'full-reload' as any,
                   }) as unknown as Plugin),
               ]
             : []),
@@ -270,7 +187,7 @@ export default defineConfig({
                     }
                 }
                 return acc
-            }, {} as Record<string, { type: 'module'; name: string; entry: string }>) as any,
+            }, {} as Record<string, { type: 'module'; name: string; entry: string }>),
             shared: SHARED_DEPENDENCIES,
             dts: false,
             // 타입 정의 버전에 따라 dev 옵션이 달라질 수 있어 캐스팅으로 안정화

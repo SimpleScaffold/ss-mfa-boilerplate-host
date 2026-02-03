@@ -7,8 +7,6 @@
  * 이 파일을 직접 수정하지 마세요. (다음 `yarn dev` 시 덮어써집니다)
  */
 
-/* eslint-disable */
-
 export function loadRemoteModule(modulePath: string) {
     switch (modulePath) {
         case 'remoteapp1/RemoteApp1':
