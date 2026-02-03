@@ -5,7 +5,6 @@
 export {
     REMOTE_APPS,
     getEnabledRemoteApps,
-    findRemoteAppByRoute,
     findRemoteAppById,
 } from './config'
 export type { RemoteAppConfig } from './config'

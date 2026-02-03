@@ -9,7 +9,7 @@ import {
     useState,
 } from 'react'
 import { RemoteAppConfig } from './config'
-import { loadRemoteModule } from './generated-remote-imports'
+import { loadRemoteModule } from 'virtual:mf-remote-imports'
 
 /**
  * 첫 로드 시 MF 런타임/원격 청크 준비(특히 Vite optimizeDeps) 지연으로
@@ -117,7 +117,7 @@ interface RemoteAppLoaderProps {
 
 // NOTE:
 // Module Federation은 빌드 타임에 모듈 경로를 인식해야 하므로,
-// 실제 import 분기(정적 import)는 `generated-remote-imports.ts`에서 자동 생성합니다.
+// 실제 import 분기(정적 import)는 Vite 가상 모듈(`virtual:mf-remote-imports`)에서 제공합니다.
 
 /**
  * 리모트 앱 동적 로더 컴포넌트

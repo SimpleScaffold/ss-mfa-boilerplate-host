@@ -23,14 +23,20 @@ const envMode = (process.env.MF_ENV || DEFAULT_ENV_MODE) as EnvMode
 // vite.config.ts에서는 필요한 필드만 보장하도록 캐스팅합니다.
 const hostConfig = getHostConfig(envMode) as { origin: string; port: number }
 
-// local.ts에서 모든 remote 설정 가져오기
-const remoteConfigs = getRemoteConfigs(envMode) as Array<{
+type RemoteEntry = {
     name?: string
+    displayName?: string
+    routePath?: string
+    modulePath?: string
+    enabled?: boolean
     manifestUrl?: string
     port?: number
     origin?: string
     url?: string
-}>
+}
+
+// local.ts에서 모든 remote 설정 가져오기
+const remoteConfigs = getRemoteConfigs(envMode) as RemoteEntry[]
 
 const SHARED_DEPENDENCIES = {
     react: { singleton: true },
@@ -39,6 +45,105 @@ const SHARED_DEPENDENCIES = {
 } as const
 
 // REMOTE_APP_2_ENTRY 제거: 동적으로 처리됨
+
+/**
+ * `config/env/*.ts` 기반 remote 설정을 "파일 생성 없이" 클라이언트 코드에서 사용할 수 있게
+ * 가상 모듈로 제공합니다.
+ *
+ * - `virtual:mf-remotes-config`: REMOTE_APPS (라우팅/표시용 메타데이터)
+ * - `virtual:mf-remote-imports`: loadRemoteModule() (MF 정적 import 매핑)
+ */
+function mfVirtualRemotesPlugin(remotes: RemoteEntry[]): Plugin {
+    const CONFIG_ID = 'virtual:mf-remotes-config'
+    const IMPORTS_ID = 'virtual:mf-remote-imports'
+    const RESOLVED_CONFIG_ID = `\0${CONFIG_ID}`
+    const RESOLVED_IMPORTS_ID = `\0${IMPORTS_ID}`
+
+    function normalizeRemoteMeta() {
+        const enabled = (remotes || []).filter((r) => r.enabled !== false)
+        return enabled.map((r, i) => {
+            const idx = i + 1
+            const id = r.name || `remoteapp${idx}`
+            const name = r.displayName || `Remote App ${idx}`
+            const modulePath = r.modulePath || `${id}/RemoteApp${idx}`
+            return {
+                id,
+                name,
+                modulePath,
+                fullPage: true,
+                enabled: true,
+            }
+        })
+    }
+
+    return {
+        name: 'mf-virtual-remotes',
+        resolveId(id) {
+            if (id === CONFIG_ID) return RESOLVED_CONFIG_ID
+            if (id === IMPORTS_ID) return RESOLVED_IMPORTS_ID
+            return null
+        },
+        load(id) {
+            if (id === RESOLVED_CONFIG_ID) {
+                const items = normalizeRemoteMeta()
+                    .map(
+                        (r) =>
+                            `    {\n` +
+                            `        id: ${JSON.stringify(r.id)},\n` +
+                            `        name: ${JSON.stringify(r.name)},\n` +
+                            `        modulePath: ${JSON.stringify(r.modulePath)},\n` +
+                            `        fullPage: true,\n` +
+                            `        enabled: true,\n` +
+                            `    },`,
+                    )
+                    .join('\n')
+
+                return (
+                    `/**\n` +
+                    ` * ⚠ VIRTUAL MODULE\n` +
+                    ` *\n` +
+                    ` * 생성 소스: config/env/*.ts (예: local.ts)\n` +
+                    ` * 생성 시점: ${new Date().toISOString()}\n` +
+                    ` */\n\n` +
+                    `export const REMOTE_APPS = [\n` +
+                    `${items}\n` +
+                    `]\n`
+                )
+            }
+
+            if (id === RESOLVED_IMPORTS_ID) {
+                const items = normalizeRemoteMeta()
+                const cases = items
+                    .map(
+                        (r) =>
+                            `        case ${JSON.stringify(r.modulePath)}:\n` +
+                            `            return import(${JSON.stringify(r.modulePath)})`,
+                    )
+                    .join('\n')
+
+                return (
+                    `/**\n` +
+                    ` * ⚠ VIRTUAL MODULE\n` +
+                    ` *\n` +
+                    ` * 생성 소스: config/env/*.ts (예: local.ts)\n` +
+                    ` * 생성 시점: ${new Date().toISOString()}\n` +
+                    ` */\n\n` +
+                    `export function loadRemoteModule(modulePath) {\n` +
+                    `    switch (modulePath) {\n` +
+                    `${cases || ''}\n` +
+                    `        default:\n` +
+                    `            return Promise.reject(\n` +
+                    '                new Error(`Unknown remote module path: ${modulePath}`),\n' +
+                    `            )\n` +
+                    `    }\n` +
+                    `}\n`
+                )
+            }
+
+            return null
+        },
+    }
+}
 
 function extractHostFromOrigin(origin: string): string {
     const match = origin.replace(/^https?:\/\//, '').split(':')[0]
@@ -139,6 +244,7 @@ export default defineConfig({
         },
     },
     plugins: [
+        mfVirtualRemotesPlugin(remoteConfigs),
         react(),
         tailwindcss(),
         fontPreloadPlugin(),

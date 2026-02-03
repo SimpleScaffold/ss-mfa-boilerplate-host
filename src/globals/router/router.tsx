@@ -3,7 +3,6 @@ import HomePage from 'src/pages/HomePage'
 import React from 'react'
 import NotFoundPage from 'src/pages/extra/NotFoundPage.tsx'
 import RemoteAppPage from 'src/pages/remotes/RemoteAppPage'
-import { getEnabledRemoteApps } from 'src/remotes'
 
 // NOTE: https://reactrouter.com/start/data/routing
 // TODO: lazy loading 적용해야 할까? > 필요 없을거 같음
@@ -39,12 +38,9 @@ const generateRoutes = (
  * config.ts에 정의된 리모트 앱 설정을 기반으로 라우트를 자동 생성합니다.
  */
 const generateRemoteAppRoutes = (): RouteObject[] => {
-    const enabledApps = getEnabledRemoteApps()
-
-    return enabledApps.map((app) => ({
-        path: app.routePath,
-        element: <RemoteAppPage />,
-    }))
+    // routePath는 별도 관리하지 않고, 단일 라우트에서 id로 remote를 선택합니다.
+    // 예: /remotes/remoteapp1
+    return [{ path: '/remotes/:id', element: <RemoteAppPage /> }]
 }
 
 const router = createBrowserRouter([

@@ -21,20 +21,24 @@ src/
 
 ### 1. 새로운 리모트 앱 추가하기
 
-`src/remotes/config.ts` 파일에 리모트 앱 설정을 추가하면 자동으로 라우트가 생성됩니다:
+`config/env/*.ts`(예: `config/env/local.ts`)의 `remotes` 배열에 리모트 앱 설정을 추가하면,
+호스트가 **환경 설정을 기반으로 자동으로 REMOTE_APPS/라우트를 구성**합니다.
+(호스트 쪽에는 생성 파일을 만들지 않고, Vite 가상 모듈로 주입됩니다.)
 
 ```typescript
-export const REMOTE_APPS: RemoteAppConfig[] = [
-    // 기존 설정들...
-    {
-        id: 'remoteapp3', // vite.config.ts의 remotes 키와 일치
-        name: 'Remote App 3', // 표시 이름
-        routePath: '/remote-app-3', // 라우트 경로
-        modulePath: 'remoteapp3/RemoteApp3', // 모듈 경로
-        fullPage: true, // 전체 페이지 여부
-        enabled: true, // 활성화 여부
-    },
-]
+export const localConfig = {
+    remotes: [
+        // 기존 설정들...
+        {
+            name: 'remoteapp3', // vite.config.ts의 remotes 키와 일치
+            manifestUrl: 'http://localhost:12002/mf-manifest.json',
+            // Host에서 import할 모듈 경로 (Remote 앱의 federation exposes와 일치해야 함)
+            modulePath: 'remoteapp3/RemoteApp3',
+            // 화면 표시용 이름 (선택)
+            displayName: 'Remote App 3',
+        },
+    ],
+}
 ```
 
 ### 2. 리모트 앱을 특정 페이지에 임베드하기
@@ -86,7 +90,6 @@ function MyPage() {
 | ------------ | --------------------------------------------- | ----------------------------------------------------- | ---- |
 | `id`         | `string`                                      | 리모트 앱 식별자 (vite.config.ts의 remotes 키와 일치) | ✅   |
 | `name`       | `string`                                      | 리모트 앱 표시 이름                                   | ✅   |
-| `routePath`  | `string`                                      | 리모트 앱이 렌더링될 라우트 경로                      | ✅   |
 | `modulePath` | `string`                                      | 리모트 앱 모듈 경로 (예: 'remoteapp1/RemoteApp1')     | ✅   |
 | `fullPage`   | `boolean`                                     | 리모트 앱이 전체 페이지를 차지하는지 여부             | ❌   |
 | `layoutSlot` | `'main' \| 'sidebar' \| 'header' \| 'footer'` | 레이아웃 영역 지정                                    | ❌   |
@@ -106,7 +109,6 @@ function MyPage() {
 {
     id: 'remoteapp3',
     name: 'Remote App 3',
-    routePath: '/dashboard',
     modulePath: 'remoteapp3/RemoteApp3',
     fullPage: false,
     layoutSlot: 'sidebar', // 사이드바 영역에 렌더링
