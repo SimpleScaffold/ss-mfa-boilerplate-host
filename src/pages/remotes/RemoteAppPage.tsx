@@ -11,8 +11,8 @@ import {
  * URL 경로에 따라 해당하는 리모트 앱을 동적으로 로드하여 렌더링합니다.
  *
  * 사용 예시:
- * - /remotes/remoteapp1 -> remoteapp1 렌더링
- * - /remotes/remoteapp2 -> remoteapp2 렌더링
+ * - /_mfe/remoteapp1 -> remoteapp1 렌더링
+ * - /_mfe/remoteapp2 -> remoteapp2 렌더링
  */
 const RemoteAppPage = () => {
     const { id } = useParams()

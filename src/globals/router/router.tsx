@@ -39,8 +39,9 @@ const generateRoutes = (
  */
 const generateRemoteAppRoutes = (): RouteObject[] => {
     // routePath는 별도 관리하지 않고, 단일 라우트에서 id로 remote를 선택합니다.
-    // 예: /remotes/remoteapp1
-    return [{ path: '/remotes/:id', element: <RemoteAppPage /> }]
+    // ✅ 예약 경로: `/_mfe/*` 는 MFE 전용 (일반 기능 URL과 충돌 방지)
+    // 예: /_mfe/remoteapp1
+    return [{ path: '/_mfe/:id', element: <RemoteAppPage /> }]
 }
 
 const router = createBrowserRouter([
