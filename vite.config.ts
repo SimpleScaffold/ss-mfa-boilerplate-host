@@ -281,6 +281,14 @@ export default defineConfig({
     },
     optimizeDeps: {
         exclude: ['@module-federation/runtime'],
+        // 첫 로드 시점에 react 계열/JSX 런타임을 확실히 prebundle해서
+        // `504 Outdated Optimize Dep`(특히 MF virtual prebuild) 발생 확률을 낮춥니다.
+        include: [
+            'react',
+            'react-dom',
+            'react/jsx-runtime',
+            'react/jsx-dev-runtime',
+        ],
         esbuildOptions: {
             target: 'esnext',
         },
