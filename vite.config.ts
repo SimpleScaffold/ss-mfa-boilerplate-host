@@ -341,6 +341,9 @@ export default defineConfig({
     server: {
         origin: hostConfig.origin,
         port: hostConfig.port,
+        // remote는 먼저 떠야 안정적이지만, 브라우저는 host(쉘) 쪽을 여는 게 UX가 좋습니다.
+        // (remote가 먼저 뜨며 터미널에 URL이 노출될 때 12000이 자동으로 열리는 문제도 예방)
+        open: true,
         hmr: {
             port: hostConfig.port,
             host: extractHostFromOrigin(hostConfig.origin),
