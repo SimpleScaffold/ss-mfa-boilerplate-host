@@ -75,4 +75,3 @@ fi
 # 2. Linux / WSL 내부 환경 대응 (또는 위 조건에 해당하지 않는 경우)
 # 이미 WSL 내부이거나 Linux 환경인 경우 직접 실행
 run_lint_staged
-
