@@ -7,7 +7,6 @@ import { toast } from 'react-toastify'
 const Sample = () => {
     const navigate = useNavigate()
 
-    const [cccc, setCccc] = useState(0)
 
     const dispatch = useAppDispatch()
 
@@ -34,21 +33,13 @@ const Sample = () => {
             <div>
                 <button
                     onClick={() => {
-                        navigate('/sample/sample')
+                        navigate('/sample/2')
                     }}
                 >
                     sssssssssssss
                 </button>
             </div>
-            {cccc}
-            <button
-                onClick={() => {
-                    setCccc((state) => state + 1)
-                }}
-            >
-                bbbbbbbbbbbbbbbbbbbbbbb
-            </button>
-            sdfsdfd sdfsdfd
+           
         </div>
     )
 }
