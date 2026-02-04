@@ -14,4 +14,3 @@ declare module 'remoteapp*/RemoteApp*' {
     const RemoteApp: ComponentType<Record<string, unknown>>
     export default RemoteApp
 }
-

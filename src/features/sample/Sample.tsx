@@ -7,7 +7,6 @@ import { toast } from 'react-toastify'
 const Sample = () => {
     const navigate = useNavigate()
 
-
     const dispatch = useAppDispatch()
 
     useEffect(() => {
@@ -39,7 +38,6 @@ const Sample = () => {
                     sssssssssssss
                 </button>
             </div>
-           
         </div>
     )
 }
