@@ -118,10 +118,16 @@ function MyPage() {
 
 ## 📝 타입 선언
 
-리모트 앱을 사용하기 전에 타입 선언 파일을 생성해야 합니다:
+Host에서 `modulePath`로 remote 모듈을 import하려면 TypeScript가 모듈 타입을 알아야 합니다.
+Remote를 추가할 때마다 파일을 만들지 않도록, Host는 와일드카드 타입 선언을 사용합니다.
+
+- `apps/fe/host/host/src/remotes/remote-modules.d.ts`
+    - `declare module 'remoteapp*/RemoteApp*' { ... }`
+
+특정 Remote에 대해 props 타입을 엄격히 주고 싶다면, 그 Remote만 별도 `declare module`을 추가하세요.
 
 ```typescript
-// src/remoteapp1.d.ts
+// (예) 특정 remote에 대해서만 더 엄격한 타입 부여
 declare module 'remoteapp1/RemoteApp1' {
     import { ComponentType } from 'react'
     const RemoteApp1: ComponentType<{ userId?: string; theme?: string }>
