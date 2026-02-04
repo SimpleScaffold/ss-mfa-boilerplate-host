@@ -3,7 +3,7 @@
 set -e
 
 # lint-staged 실행 헬퍼
-# - 이 레포에 lint-staged가 설치되어 있지 않아도(또는 yarn이 script로만 인식해도)
+# - 앱 레포에 lint-staged가 설치되어 있지 않아도(또는 yarn이 script로만 인식해도)
 #   micro-platform 루트 node_modules에 설치된 바이너리로 fallback 합니다.
 run_lint_staged() {
     # prettier/eslint 바이너리 탐색 경로를 보강 (앱 레포/루트 둘 다 커버)

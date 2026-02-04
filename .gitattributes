@@ -1,5 +1,15 @@
-* text=auto
+* text=auto eol=lf
 
 # Git hooks must be LF on Linux/WSL (shebang execution).
 *.sh text eol=lf
 .husky/* text eol=lf
+
+# Common binary formats (avoid EOL conversion)
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.pdf binary
+*.zip binary

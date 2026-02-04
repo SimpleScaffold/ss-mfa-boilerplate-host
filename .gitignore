@@ -17,3 +17,21 @@ __mf__temp
 **/.turbo/**
 *.turbo.log
 turbo-*.log
+
+# >>> micro-platform bootstrap (generated) >>>
+
+# Module Federation (generated temp outputs)
+.__mf__temp
+__mf__temp
+.mf
+
+# Common caches / build artifacts
+.vite
+.cache
+.swc
+dist
+build
+.next
+.turbo
+
+# <<< micro-platform bootstrap (generated) <<<
