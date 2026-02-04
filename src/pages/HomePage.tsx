@@ -1,7 +1,7 @@
-import Home from 'src/features/Home.tsx'
+import { DSlayout } from '@repo/fe-ui/dslayout'
 
 const HomePage = () => {
-    return <Home />
+    return <DSlayout menuType="side">ㅋㅋㅋㅋㅋ</DSlayout>
 }
 
 export default HomePage
