@@ -14,7 +14,7 @@ src/
 │   └── README.md                    # 이 문서
 └── pages/
     └── remotes/
-        └── RemoteAppPage.tsx        # 리모트 앱 페이지 컴포넌트
+        └── (없음)                   # 리모트는 URL 진입 없이 "임베드"로 사용
 ```
 
 ## 🎯 사용 방법
@@ -97,14 +97,9 @@ function MyPage() {
 
 ## 🔄 동작 원리
 
-1. **예약 경로 기반 라우트**: 호스트는 `/_mfe/:id` 단일 라우트를 사용합니다. (`/_mfe/*`는 MFE 전용 예약 경로)
+1. **임베드 방식 렌더링**: Host 페이지 내부에서 `RemoteAppLoader`로 Remote 컴포넌트를 렌더링합니다.
 2. **동적 모듈 로딩**: `RemoteAppLoader`가 Module Federation을 통해 리모트 앱을 동적으로 로드합니다.
 3. **에러 처리**: `RemoteAppErrorBoundary`가 리모트 앱 로딩 및 실행 중 발생하는 에러를 캐치합니다.
-
-## 🚦 라우팅 규칙 (중요)
-
-- **예약 경로**: `/_mfe/*`는 마이크로 프론트엔드 전용입니다. 일반 기능 URL은 이 prefix를 사용하지 않습니다.
-- **접속 방법**: `/_mfe/<remoteId>` (예: `/_mfe/remoteapp1`)
 
 ## 🎨 레이아웃 영역 활용 (향후 확장)
 

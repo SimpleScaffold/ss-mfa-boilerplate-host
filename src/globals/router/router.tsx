@@ -2,7 +2,6 @@ import { createBrowserRouter, RouteObject } from 'react-router'
 import HomePage from 'src/pages/HomePage'
 import React from 'react'
 import NotFoundPage from 'src/pages/extra/NotFoundPage.tsx'
-import RemoteAppPage from 'src/pages/remotes/RemoteAppPage'
 
 // NOTE: https://reactrouter.com/start/data/routing
 // TODO: lazy loading 적용해야 할까? > 필요 없을거 같음
@@ -32,18 +31,6 @@ const generateRoutes = (
     })
 }
 
-/**
- * 리모트 앱 라우트 생성
- *
- * config.ts에 정의된 리모트 앱 설정을 기반으로 라우트를 자동 생성합니다.
- */
-const generateRemoteAppRoutes = (): RouteObject[] => {
-    // routePath는 별도 관리하지 않고, 단일 라우트에서 id로 remote를 선택합니다.
-    // ✅ 예약 경로: `/_mfe/*` 는 MFE 전용 (일반 기능 URL과 충돌 방지)
-    // 예: /_mfe/remoteapp1
-    return [{ path: '/_mfe/:id', element: <RemoteAppPage /> }]
-}
-
 const router = createBrowserRouter([
     {
         path: '/',
@@ -51,9 +38,6 @@ const router = createBrowserRouter([
     },
 
     ...generateRoutes(MODULES),
-
-    // 리모트 앱 라우트 자동 생성
-    ...generateRemoteAppRoutes(),
 
     {
         path: '*',
