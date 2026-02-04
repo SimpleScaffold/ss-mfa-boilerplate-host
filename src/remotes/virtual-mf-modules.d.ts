@@ -10,7 +10,8 @@ declare module 'virtual:mf-remotes-config' {
 }
 
 declare module 'virtual:mf-remote-imports' {
+    import type { ComponentType } from 'react'
     export function loadRemoteModule(
         modulePath: string,
-    ): Promise<{ default: unknown }>
+    ): Promise<{ default: ComponentType<Record<string, unknown>> }>
 }
