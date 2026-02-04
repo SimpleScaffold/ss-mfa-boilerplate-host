@@ -1,0 +1,6 @@
+* text=auto
+
+# Git hooks must be LF on Linux/WSL (shebang execution).
+*.sh text eol=lf
+.husky/* text eol=lf
+

@@ -1,0 +1,29 @@
+# Dependency & Build directories
+node_modules
+dist
+build
+.next
+.turbo
+coverage
+*.lock
+yarn.lock
+package-lock.json
+
+# --- Micro Frontend Apps & Shared Structure ---
+# .gitignore에 등록되어 있을 수 있는 디렉토리들을 강제로 포함시킵니다.
+!apps/fe/host/**
+!apps/fe/remote/**
+!packages/fe/**
+!packages/shared/**
+!doc/**
+!scripts/**
+!config/**
+
+# --- Exclude Build Artifacts inside Apps ---
+# 포함된 디렉토리 내부에서도 포맷팅이 필요 없는 파일들은 제외합니다.
+**/dist/**
+**/.__mf__temp/**
+**/.vite/**
+**/.cache/**
+**/.swc/**
+**/build/**
