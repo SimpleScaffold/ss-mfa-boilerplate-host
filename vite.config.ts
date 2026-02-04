@@ -206,6 +206,8 @@ export default defineConfig({
             output: {
                 format: 'es',
                 manualChunks: {
+                    // Cesium 관련 모듈 (매우 큰 라이브러리)
+                    'vendor-cesium': ['cesium'],
                     // React 관련 모듈
                     'vendor-react': [
                         'react',
@@ -219,6 +221,13 @@ export default defineConfig({
                         'react-redux',
                         'redux',
                         'redux-saga',
+                    ],
+                    // Router 관련 모듈
+                    'vendor-router': ['react-router'],
+                    // Table 관련 모듈
+                    'vendor-table': [
+                        '@tanstack/react-table',
+                        '@tanstack/react-virtual',
                     ],
                     // i18n 관련 모듈
                     // 'vendor-i18n': ['i18next', 'react-i18next'],
