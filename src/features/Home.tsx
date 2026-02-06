@@ -13,7 +13,7 @@ const Home = () => {
     return (
         <div className="flex h-full w-full bg-blue-500">
             <div className="flex min-h-0 w-full flex-1 flex-col overflow-hidden">
-                <MapViewer height="600px" />
+                <MapViewer />
             </div>
 
             {/* <MapControls className="mb-4" /> */}
