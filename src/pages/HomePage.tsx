@@ -1,11 +1,5 @@
-import { DSlayout } from '@repo/fe-ui/dslayout'
-
 const HomePage = () => {
-    return (
-        <DSlayout menuType="side">
-            <>ㅇㅇㅇㅇ</>
-        </DSlayout>
-    )
+    return <>ㅇㅇㅇㅇ</>
 }
 
 export default HomePage
