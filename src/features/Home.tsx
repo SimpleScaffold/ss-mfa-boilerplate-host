@@ -11,15 +11,14 @@ const Home = () => {
     const remoteApp1 = findRemoteAppById('remoteapp1')
 
     return (
-        <div className="p-4">
-            <h1 className="mb-4 text-2xl font-bold">Home</h1>
-
-            <div className="mb-6">
-                <MapControls className="mb-4" />
+        <div className="flex h-full w-full bg-blue-500">
+            <div className="flex min-h-0 w-full flex-1 flex-col overflow-hidden">
                 <MapViewer height="600px" />
             </div>
 
-            {remoteApp1 && (
+            {/* <MapControls className="mb-4" /> */}
+
+            {/* {remoteApp1 && (
                 <div className="mt-6">
                     <h2 className="mb-4 text-xl font-semibold">
                         {remoteApp1.name}
@@ -40,7 +39,7 @@ const Home = () => {
                         />
                     </RemoteAppErrorBoundary>
                 </div>
-            )}
+            )} */}
         </div>
     )
 }

@@ -1,5 +1,7 @@
+import Home from 'src/features/Home'
+
 const HomePage = () => {
-    return <>ㅇㅇㅇㅇ</>
+    return <Home />
 }
 
 export default HomePage

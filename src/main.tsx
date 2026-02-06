@@ -113,7 +113,7 @@ function setupViteFirstLoadRecovery() {
             const ok = await waitUntilOptimizeDepsReady()
             if (!ok) return
             incCount()
-             
+
             console.warn(
                 `[mf-dev] recovered from optimizeDeps race (${reason})`,
             )
