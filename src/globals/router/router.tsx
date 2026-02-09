@@ -1,8 +1,8 @@
-import { createBrowserRouter, RouteObject, Outlet } from 'react-router'
+import { createBrowserRouter, RouteObject } from 'react-router'
 import HomePage from 'src/pages/HomePage'
 import React from 'react'
 import NotFoundPage from 'src/pages/extra/NotFoundPage.tsx'
-import { DSlayout } from '@repo/fe-ui/dslayout'
+import MenuLayout from 'src/globals/layout/MenuLayout'
 
 // NOTE: https://reactrouter.com/start/data/routing
 // TODO: lazy loading 적용해야 할까? > 필요 없을거 같음
@@ -35,11 +35,7 @@ const generateRoutes = (
 const router = createBrowserRouter([
     {
         path: '/',
-        element: (
-            <DSlayout menuType="side">
-                <Outlet />
-            </DSlayout>
-        ),
+        element: <MenuLayout />,
         children: [
             {
                 index: true,

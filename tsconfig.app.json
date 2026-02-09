@@ -1,8 +1,10 @@
 {
+    "extends": "../../../../tsconfig.base.json",
     "compilerOptions": {
         "baseUrl": ".",
         "paths": {
-            "src/*": ["src/*"]
+            "src/*": ["src/*"],
+            "@repo/fe-ui/*": ["../../../../packages/fe/ui/src/exports/*"]
         },
 
         "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
