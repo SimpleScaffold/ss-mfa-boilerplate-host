@@ -70,6 +70,47 @@ function cesiumStaticPlugin(): Plugin {
     }
 }
 
+// @repo/fe-ui 패키지 내부의 상대 경로 import를 해석하기 위한 플러그인
+function feUiResolvePlugin(): Plugin {
+    return {
+        name: 'fe-ui-resolve',
+        resolveId(id, importer) {
+            // @repo/fe-ui 패키지 내부의 상대 경로 import를 해석
+            if (importer && importer.includes('packages/fe/ui/src')) {
+                // 상대 경로 import인 경우
+                if (id.startsWith('../') || id.startsWith('./')) {
+                    const importerDir = path.dirname(importer)
+                    const resolvedPath = path.resolve(importerDir, id)
+
+                    // .ts 확장자가 없으면 추가
+                    if (
+                        !resolvedPath.endsWith('.ts') &&
+                        !resolvedPath.endsWith('.tsx')
+                    ) {
+                        if (fs.existsSync(resolvedPath + '.ts')) {
+                            return resolvedPath + '.ts'
+                        }
+                        if (fs.existsSync(resolvedPath + '.tsx')) {
+                            return resolvedPath + '.tsx'
+                        }
+                        if (fs.existsSync(resolvedPath + '/index.ts')) {
+                            return resolvedPath + '/index.ts'
+                        }
+                        if (fs.existsSync(resolvedPath + '/index.tsx')) {
+                            return resolvedPath + '/index.tsx'
+                        }
+                    }
+
+                    if (fs.existsSync(resolvedPath)) {
+                        return resolvedPath
+                    }
+                }
+            }
+            return null
+        },
+    }
+}
+
 // REMOTE_APP_2_ENTRY 제거: 동적으로 처리됨
 
 /**
@@ -190,6 +231,7 @@ export default defineConfig(({ command }) => {
 
     return {
         plugins: [
+            feUiResolvePlugin(),
             mfVirtualRemotesPlugin(remoteConfigs),
             react(),
             tailwindcss(),
@@ -235,6 +277,8 @@ export default defineConfig(({ command }) => {
                     replacement: `${path.resolve(__dirname, '../../../../packages/fe/ui/src/assets')}/`,
                 },
             ],
+            // @repo/fe-ui 패키지 내부의 상대 경로 import를 해석하기 위한 설정
+            preserveSymlinks: false,
         },
         server: {
             origin: hostConfig.origin,

@@ -36,7 +36,7 @@ const MenuLayout = () => {
 
     // 메뉴 데이터가 로드되면 메뉴 타입을 최종 메뉴 타입으로 변환
     useEffect(() => {
-        setFinalMenu(convertToFinalMenu(baseMenu as FinalMenuTree | null))
+        setFinalMenu(convertToFinalMenu(baseMenu))
     }, [baseMenu])
 
     return (

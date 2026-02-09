@@ -11,15 +11,24 @@ const useRouteListener = () => {
     })
 
     useLayoutEffect(() => {
-        const originalPushState = window.history.pushState
-        const originalReplaceState = window.history.replaceState
+        // 원래 함수를 저장 (bind를 사용하여 this 컨텍스트 보존)
+        const originalPushState = (
+            ...args: Parameters<typeof window.history.pushState>
+        ) => {
+            return window.history.pushState(...args)
+        }
+        const originalReplaceState = (
+            ...args: Parameters<typeof window.history.replaceState>
+        ) => {
+            return window.history.replaceState(...args)
+        }
 
         const handleStateChange = (
             method: typeof originalPushState,
             ...args: Parameters<typeof originalPushState>
         ) => {
             const event = new CustomEvent('locationChange')
-            method.apply(window.history, args)
+            method(...args)
             window.dispatchEvent(event)
         }
 
@@ -39,6 +48,7 @@ const useRouteListener = () => {
         window.addEventListener('popstate', handleLocationChange)
 
         return () => {
+            // 원래 함수로 복원
             window.history.pushState = originalPushState
             window.history.replaceState = originalReplaceState
             window.removeEventListener('locationChange', handleLocationChange)

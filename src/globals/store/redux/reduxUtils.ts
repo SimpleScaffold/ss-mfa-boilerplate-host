@@ -238,10 +238,8 @@ export function reduxMaker<
 
     const saga = function* () {
         for (const { action, api } of asyncRequests) {
-            yield takeLatest(
-                `${prefix}/${action}`,
-                createRequestSaga(prefix, action, api),
-            )
+            const requestSaga = createRequestSaga(prefix, action, api)
+            yield takeLatest(`${prefix}/${action}`, requestSaga)
         }
     } as () => SagaIterator
 

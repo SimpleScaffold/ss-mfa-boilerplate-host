@@ -24,7 +24,7 @@ const Sample = () => {
             <button onClick={notify}>Notify !</button>
             <button
                 onClick={() => {
-                    navigate('/')
+                    void navigate('/')
                 }}
             >
                 홈으로
@@ -32,7 +32,7 @@ const Sample = () => {
             <div>
                 <button
                     onClick={() => {
-                        navigate('/sample/2')
+                        void navigate('/sample/2')
                     }}
                 >
                     sssssssssssss

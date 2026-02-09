@@ -5,8 +5,12 @@
         "baseUrl": ".",
         "paths": {
             "src/*": ["./src/*"],
-            "config": ["../../../../config/index"]
-        }
+            "config": ["../../../../config/index"],
+            "@repo/fe-ui/*": ["../../../../packages/fe/ui/src/exports/*"]
+        },
+        "moduleResolution": "bundler",
+        "allowImportingTsExtensions": true,
+        "skipLibCheck": true
     },
     "include": ["src"]
 }

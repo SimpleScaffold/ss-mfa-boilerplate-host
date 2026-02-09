@@ -7,9 +7,12 @@ import MenuLayout from 'src/globals/layout/MenuLayout'
 // NOTE: https://reactrouter.com/start/data/routing
 // TODO: lazy loading 적용해야 할까? > 필요 없을거 같음
 
-const MODULES = import.meta.glob('src/pages/url/**/*.tsx', {
-    eager: true,
-}) as Record<string, { default: React.FC }>
+const MODULES = import.meta.glob<{ default: React.FC }>(
+    'src/pages/url/**/*.tsx',
+    {
+        eager: true,
+    },
+)
 
 const generateRoutes = (
     modules: Record<string, { default: React.FC }>,

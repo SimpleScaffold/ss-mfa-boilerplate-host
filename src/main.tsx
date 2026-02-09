@@ -130,15 +130,18 @@ function setupViteFirstLoadRecovery() {
     })
 
     // MF virtual prebuild 등에서 종종 dynamic import 실패로만 떨어지는 케이스도 보강
-    window.addEventListener('unhandledrejection', (e) => {
-        const msg = String((e as PromiseRejectionEvent).reason ?? '')
-        if (!shouldRecoverForMessage(msg)) return
-        void recoverOnce('unhandledrejection')
-    })
+    window.addEventListener(
+        'unhandledrejection',
+        (e: PromiseRejectionEvent) => {
+            const msg = String(e.reason ?? '')
+            if (!shouldRecoverForMessage(msg)) return
+            void recoverOnce('unhandledrejection')
+        },
+    )
 
     // 같은 에러가 콘솔 에러로만 찍히고 rejection으로는 안 잡히는 환경을 보강
-    window.addEventListener('error', (e) => {
-        const msg = String((e as ErrorEvent).message ?? '')
+    window.addEventListener('error', (e: ErrorEvent) => {
+        const msg = String(e.message ?? '')
         if (!shouldRecoverForMessage(msg)) return
         void recoverOnce('error')
     })
