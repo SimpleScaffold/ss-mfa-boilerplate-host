@@ -257,6 +257,14 @@ export default defineConfig(({ command }) => {
                 ),
                 shared,
                 dts: false,
+                // eval 사용을 피하기 위한 설정
+                runtimePlugins: [],
+                // SDK의 불필요한 기능 비활성화 (eval 사용 방지)
+                ...(isDev && {
+                    dev: {
+                        disableRuntimePlugins: true,
+                    },
+                }),
             }),
         ],
         define: {
@@ -295,6 +303,26 @@ export default defineConfig(({ command }) => {
         },
         build: {
             target: 'chrome107',
+            rollupOptions: {
+                output: {
+                    format: 'es',
+                    // eval 사용 방지를 위한 설정
+                    generatedCode: {
+                        constBindings: true,
+                        objectShorthand: true,
+                    },
+                    // eval 대신 함수로 변환
+                    strict: false,
+                },
+                // eval 사용 방지
+                external: [],
+            },
+            commonjsOptions: {
+                transformMixedEsModules: true,
+            },
+            minify: 'esbuild',
+            // eval 사용 방지
+            sourcemap: false,
         },
     }
 })
