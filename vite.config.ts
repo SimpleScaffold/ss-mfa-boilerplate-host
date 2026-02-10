@@ -307,16 +307,13 @@ export default defineConfig(({ command }) => {
             rollupOptions: {
                 // Module Federation SDK의 eval 경고 억제
                 // 참고: doc/kr/11-code-quality/build-eval-warning.md
-                // 이 eval은 브라우저에서 실행되지 않는 Node.js 전용 코드입니다
                 onwarn(warning, warn) {
-                    // Module Federation SDK의 eval 경고는 무시
                     if (
                         warning.code === 'EVAL' &&
                         warning.id?.includes('@module-federation/sdk')
                     ) {
                         return
                     }
-                    // 기타 경고는 정상적으로 표시
                     warn(warning)
                 },
                 output: {
@@ -350,9 +347,13 @@ export default defineConfig(({ command }) => {
                             return 'chunk-react-core'
                         }
 
-                        // 3. Redux 관련 라이브러리
+                        // 3. Redux 관련 라이브러리 (상태 관리)
+                        // Redux Toolkit은 큰 라이브러리이므로 별도 분리
+                        if (id.includes('node_modules/@reduxjs/toolkit')) {
+                            return 'chunk-redux-toolkit'
+                        }
+                        // Redux 관련 나머지 (redux, redux-saga, react-redux)
                         if (
-                            id.includes('node_modules/@reduxjs/toolkit') ||
                             id.includes('node_modules/redux/') ||
                             id.includes('node_modules/redux-saga') ||
                             id.includes('node_modules/react-redux')
@@ -373,12 +374,13 @@ export default defineConfig(({ command }) => {
                             return 'chunk-react-router'
                         }
 
-                        // 6. 아이콘 라이브러리 (lucide-react) - 875KB로 매우 큼
+                        // 6. 아이콘 라이브러리 (lucide-react)
+                        // 개별 import로 최적화되어 필요한 아이콘만 번들에 포함됨
                         if (id.includes('node_modules/lucide-react')) {
                             return 'chunk-icons'
                         }
 
-                        // 7. Radix UI 관련 (shadcn/ui 기반, 여러 컴포넌트로 인해 큰 편)
+                        // 7. Radix UI 관련 (shadcn/ui 기반, UI 컴포넌트 라이브러리)
                         if (id.includes('node_modules/@radix-ui')) {
                             return 'chunk-radix-ui'
                         }
@@ -405,28 +407,31 @@ export default defineConfig(({ command }) => {
                             return 'chunk-fe-utils'
                         }
 
-                        // 10. 큰 라이브러리들 추가 분리
+                        // 10. HTTP/API 관련 라이브러리
                         if (id.includes('node_modules/axios')) {
-                            return 'chunk-axios'
-                        }
-                        if (id.includes('node_modules/react-toastify')) {
-                            return 'chunk-toastify'
-                        }
-                        if (id.includes('node_modules/typesafe-actions')) {
-                            return 'chunk-typesafe-actions'
+                            return 'chunk-http'
                         }
 
-                        // 11. 클래스명/스타일 관련 유틸리티
+                        // 11. UI/알림 관련 라이브러리 (react-toastify 등)
+                        if (id.includes('node_modules/react-toastify')) {
+                            return 'chunk-ui-notification'
+                        }
+
+                        // 12. 유틸리티 라이브러리들 (기능별 그룹화)
+                        // 타입/액션 관련 유틸리티
+                        if (id.includes('node_modules/typesafe-actions')) {
+                            return 'chunk-utils'
+                        }
+                        // 클래스명/스타일 관련 유틸리티
                         if (
                             id.includes('node_modules/clsx') ||
                             id.includes('node_modules/classnames') ||
                             id.includes('node_modules/tailwind-merge') ||
                             id.includes('node_modules/class-variance-authority')
                         ) {
-                            return 'chunk-styles-utils'
+                            return 'chunk-utils'
                         }
-
-                        // 12. 작은 유틸리티 라이브러리들 그룹화
+                        // 작은 유틸리티 라이브러리들
                         if (
                             id.includes('node_modules/tslib') ||
                             id.includes('node_modules/nanoid') ||
@@ -435,7 +440,28 @@ export default defineConfig(({ command }) => {
                             return 'chunk-utils'
                         }
 
-                        // 13. 기타 node_modules 라이브러리들
+                        // 13. @ 스코프 패키지들 (Radix UI 제외, 작은 것들 묶기)
+                        if (
+                            id.includes('node_modules/@') &&
+                            !id.includes('node_modules/@radix-ui') &&
+                            !id.includes('node_modules/@reduxjs') &&
+                            !id.includes('node_modules/@tanstack') &&
+                            !id.includes('node_modules/@module-federation') &&
+                            !id.includes('node_modules/@repo') &&
+                            !id.includes('node_modules/@types') &&
+                            !id.includes('node_modules/@vitejs') &&
+                            !id.includes('node_modules/@tailwindcss') &&
+                            !id.includes('node_modules/@eslint') &&
+                            !id.includes('node_modules/@antdevx')
+                        ) {
+                            return 'chunk-scoped'
+                        }
+                        // @types 관련 (타입 정의 파일들, 작으니 묶기)
+                        if (id.includes('node_modules/@types')) {
+                            return 'chunk-scoped'
+                        }
+
+                        // 14. 기타 node_modules 라이브러리들 (마지막에 체크)
                         if (id.includes('node_modules')) {
                             return 'chunk-vendor'
                         }
