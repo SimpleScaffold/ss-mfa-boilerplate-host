@@ -304,6 +304,20 @@ export default defineConfig(({ command }) => {
         build: {
             target: 'chrome107',
             rollupOptions: {
+                // Module Federation SDK의 eval 경고 억제
+                // 참고: doc/kr/11-code-quality/build-eval-warning.md
+                // 이 eval은 브라우저에서 실행되지 않는 Node.js 전용 코드입니다
+                onwarn(warning, warn) {
+                    // Module Federation SDK의 eval 경고는 무시
+                    if (
+                        warning.code === 'EVAL' &&
+                        warning.id?.includes('@module-federation/sdk')
+                    ) {
+                        return
+                    }
+                    // 기타 경고는 정상적으로 표시
+                    warn(warning)
+                },
                 output: {
                     format: 'es',
                     // eval 사용 방지를 위한 설정
@@ -313,6 +327,118 @@ export default defineConfig(({ command }) => {
                     },
                     // eval 대신 함수로 변환
                     strict: false,
+                    // 큰 라이브러리들만 의미있는 청크명으로 분리 (500KB 이상)
+                    manualChunks: (id) => {
+                        // 1. 세슘 라이브러리 (매우 큰 라이브러리) - 가장 먼저 체크
+                        // 세슘은 다양한 형태로 import될 수 있으므로 여러 패턴으로 매칭
+                        if (
+                            id.includes('cesium') ||
+                            id.includes('Cesium') ||
+                            /[\\/]cesium[\\/]/.test(id) ||
+                            /[\\/]Cesium[\\/]/.test(id)
+                        ) {
+                            return 'chunk-cesium'
+                        }
+
+                        // 2. React 코어 라이브러리
+                        if (
+                            id.includes('node_modules/react/') ||
+                            id.includes('node_modules/react-dom/') ||
+                            id.includes('node_modules/react/jsx-runtime')
+                        ) {
+                            return 'chunk-react-core'
+                        }
+
+                        // 3. Redux 관련 라이브러리
+                        if (
+                            id.includes('node_modules/@reduxjs/toolkit') ||
+                            id.includes('node_modules/redux/') ||
+                            id.includes('node_modules/redux-saga') ||
+                            id.includes('node_modules/react-redux')
+                        ) {
+                            return 'chunk-redux'
+                        }
+
+                        // 4. TanStack 테이블 관련
+                        if (
+                            id.includes('node_modules/@tanstack/react-table') ||
+                            id.includes('node_modules/@tanstack/react-virtual')
+                        ) {
+                            return 'chunk-tanstack-table'
+                        }
+
+                        // 5. React Router
+                        if (id.includes('node_modules/react-router')) {
+                            return 'chunk-react-router'
+                        }
+
+                        // 6. 아이콘 라이브러리 (lucide-react) - 875KB로 매우 큼
+                        if (id.includes('node_modules/lucide-react')) {
+                            return 'chunk-icons'
+                        }
+
+                        // 7. Radix UI 관련 (shadcn/ui 기반, 여러 컴포넌트로 인해 큰 편)
+                        if (id.includes('node_modules/@radix-ui')) {
+                            return 'chunk-radix-ui'
+                        }
+
+                        // 8. Module Federation 관련
+                        if (
+                            id.includes('node_modules/@module-federation') ||
+                            id.includes('node_modules/webpack')
+                        ) {
+                            return 'chunk-module-federation'
+                        }
+
+                        // 9. Workspace 패키지들 (@repo/fe-ui, @repo/fe-utils)
+                        if (
+                            id.includes('packages/fe/ui') ||
+                            id.includes('@repo/fe-ui')
+                        ) {
+                            return 'chunk-fe-ui'
+                        }
+                        if (
+                            id.includes('packages/fe/utils') ||
+                            id.includes('@repo/fe-utils')
+                        ) {
+                            return 'chunk-fe-utils'
+                        }
+
+                        // 10. 큰 라이브러리들 추가 분리
+                        if (id.includes('node_modules/axios')) {
+                            return 'chunk-axios'
+                        }
+                        if (id.includes('node_modules/react-toastify')) {
+                            return 'chunk-toastify'
+                        }
+                        if (id.includes('node_modules/typesafe-actions')) {
+                            return 'chunk-typesafe-actions'
+                        }
+
+                        // 11. 클래스명/스타일 관련 유틸리티
+                        if (
+                            id.includes('node_modules/clsx') ||
+                            id.includes('node_modules/classnames') ||
+                            id.includes('node_modules/tailwind-merge') ||
+                            id.includes('node_modules/class-variance-authority')
+                        ) {
+                            return 'chunk-styles-utils'
+                        }
+
+                        // 12. 작은 유틸리티 라이브러리들 그룹화
+                        if (
+                            id.includes('node_modules/tslib') ||
+                            id.includes('node_modules/nanoid') ||
+                            id.includes('node_modules/uuid')
+                        ) {
+                            return 'chunk-utils'
+                        }
+
+                        // 13. 기타 node_modules 라이브러리들
+                        if (id.includes('node_modules')) {
+                            return 'chunk-vendor'
+                        }
+                    },
                 },
                 // eval 사용 방지
                 external: [],
