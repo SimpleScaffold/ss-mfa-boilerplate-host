@@ -9,6 +9,25 @@ const prefix = 'function_measurement'
  * 생성일: 2026-02-09
  */
 
+export type MeasurementType =
+    | 'plane'
+    | 'space'
+    | 'vertical'
+    | 'area'
+    | 'elevation'
+    | 'volume'
+    | null
+
+/** 측정 Redux slice 상태 타입 */
+export interface MeasurementState {
+    isActive: boolean
+    activeMeasurementType: MeasurementType
+    measurementOptions: { unit?: string }
+    data: unknown
+    isLoading: boolean
+    error: string | null
+}
+
 /**
  * 비동기 요청 정의
  */
@@ -22,6 +41,12 @@ const asyncRequests = [
 const localState = {
     // 활성화 상태
     isActive: false,
+
+    // 현재 활성 측정 유형 (평면/공간/수직/면적/표고/부피)
+    activeMeasurementType: null as MeasurementType,
+
+    // 측정 옵션 (단위 등)
+    measurementOptions: {} as Record<string, unknown>,
 
     // 데이터
     data: null as unknown,
@@ -63,17 +88,26 @@ const localReducers = {
 
     /**
      * 평면거리 측정 실행
+     * - activeMeasurementType을 'plane'으로 설정하여 useMeasurementEffect에서
+     *   Cesium 평면 거리 측정(startPlaneDistanceMeasurement)을 구동
      */
     executeDistancePlane: (
         state: typeof localState,
         action: PayloadAction<{ unit?: string }>,
     ) => {
-        console.log(
-            '[Measurement] Starting plane distance measurement',
-            action.payload,
-        )
+        const { unit = 'm' } = action.payload ?? {}
         state.isActive = true
-        // 실제 측정 로직 구현
+        state.activeMeasurementType = 'plane'
+        state.measurementOptions = { unit }
+        state.error = null
+    },
+
+    /**
+     * 측정 모드만 비활성화 (결과는 유지)
+     */
+    setInactive: (state: typeof localState, _action: PayloadAction<void>) => {
+        state.isActive = false
+        state.activeMeasurementType = null
     },
 
     /**
@@ -140,13 +174,13 @@ const localReducers = {
     },
 
     /**
-     * 측정 결과 제거
+     * 측정 결과 제거 및 측정 모드 해제
      */
     executeRemove: (state: typeof localState, action: PayloadAction<void>) => {
-        console.log('[Measurement] Removing measurements')
         state.data = null
         state.isActive = false
-        // 실제 제거 로직 구현
+        state.activeMeasurementType = null
+        state.measurementOptions = {}
     },
 }
 

@@ -24,7 +24,10 @@ export const MOCK_MENU_DATA: FinalMenuTree = [
                     {
                         name: '평면거리',
                         menuType: 'LEAF',
-                        route: { routeType: 'INTERNAL', actionCode: '11' },
+                        route: {
+                            routeType: 'INTERNAL',
+                            actionCode: 'executeDistancePlane',
+                        },
                     },
                     {
                         name: '공간거리',
