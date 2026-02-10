@@ -52,8 +52,8 @@ export type FinalRoute = InternalRoute | ExternalRoute
  * 최종 메뉴 아이템 구조
  */
 export interface FinalMenuItem {
-    /** 고유 ID */
-    id: string
+    /** 고유 ID (선택, 없으면 name으로 key 사용) */
+    id?: string
 
     /** 메뉴 이름 (표시용) */
     name: string
