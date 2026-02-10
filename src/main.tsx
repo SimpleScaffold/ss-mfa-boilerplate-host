@@ -147,7 +147,10 @@ function setupViteFirstLoadRecovery() {
     })
 }
 
-setupViteFirstLoadRecovery()
+// dev 모드에서만 실행 (preview/production에서는 불필요)
+if (import.meta.env.DEV) {
+    setupViteFirstLoadRecovery()
+}
 
 createRoot(document.getElementById('root')!).render(
     <Provider store={store}>

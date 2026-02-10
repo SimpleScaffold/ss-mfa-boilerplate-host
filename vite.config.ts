@@ -2,6 +2,7 @@ import react from '@vitejs/plugin-react-swc'
 import tailwindcss from '@tailwindcss/vite'
 import { federation } from '@module-federation/vite'
 import { defineConfig, type Plugin } from 'vite'
+import { viteStaticCopy } from 'vite-plugin-static-copy'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -236,6 +237,15 @@ export default defineConfig(({ command }) => {
             react(),
             tailwindcss(),
             cesiumStaticPlugin(),
+            // Cesium 정적 파일을 빌드 시 복사 (preview 모드에서도 사용 가능하도록)
+            viteStaticCopy({
+                targets: [
+                    {
+                        src: path.join(cesiumSource, '**/*'),
+                        dest: cesiumBaseUrl,
+                    },
+                ],
+            }),
             federation({
                 name: 'hostapp1',
                 manifest: true,
@@ -257,6 +267,8 @@ export default defineConfig(({ command }) => {
                 ),
                 shared,
                 dts: false,
+                // hostInit을 엔트리 파일에 포함 (HTML이 아닌 엔트리에서 실행)
+                hostInitInjectLocation: 'entry',
                 // eval 사용을 피하기 위한 설정
                 runtimePlugins: [],
                 // SDK의 불필요한 기능 비활성화 (eval 사용 방지)
@@ -325,147 +337,9 @@ export default defineConfig(({ command }) => {
                     },
                     // eval 대신 함수로 변환
                     strict: false,
-                    // 큰 라이브러리들만 의미있는 청크명으로 분리 (500KB 이상)
-                    manualChunks: (id) => {
-                        // 1. 세슘 라이브러리 (매우 큰 라이브러리) - 가장 먼저 체크
-                        // 세슘은 다양한 형태로 import될 수 있으므로 여러 패턴으로 매칭
-                        if (
-                            id.includes('cesium') ||
-                            id.includes('Cesium') ||
-                            /[\\/]cesium[\\/]/.test(id) ||
-                            /[\\/]Cesium[\\/]/.test(id)
-                        ) {
-                            return 'chunk-cesium'
-                        }
-
-                        // 2. React 코어 라이브러리
-                        if (
-                            id.includes('node_modules/react/') ||
-                            id.includes('node_modules/react-dom/') ||
-                            id.includes('node_modules/react/jsx-runtime')
-                        ) {
-                            return 'chunk-react-core'
-                        }
-
-                        // 3. Redux 관련 라이브러리 (상태 관리)
-                        // Redux Toolkit은 큰 라이브러리이므로 별도 분리
-                        if (id.includes('node_modules/@reduxjs/toolkit')) {
-                            return 'chunk-redux-toolkit'
-                        }
-                        // Redux 관련 나머지 (redux, redux-saga, react-redux)
-                        if (
-                            id.includes('node_modules/redux/') ||
-                            id.includes('node_modules/redux-saga') ||
-                            id.includes('node_modules/react-redux')
-                        ) {
-                            return 'chunk-redux'
-                        }
-
-                        // 4. TanStack 테이블 관련
-                        if (
-                            id.includes('node_modules/@tanstack/react-table') ||
-                            id.includes('node_modules/@tanstack/react-virtual')
-                        ) {
-                            return 'chunk-tanstack-table'
-                        }
-
-                        // 5. React Router
-                        if (id.includes('node_modules/react-router')) {
-                            return 'chunk-react-router'
-                        }
-
-                        // 6. 아이콘 라이브러리 (lucide-react)
-                        // 개별 import로 최적화되어 필요한 아이콘만 번들에 포함됨
-                        if (id.includes('node_modules/lucide-react')) {
-                            return 'chunk-icons'
-                        }
-
-                        // 7. Radix UI 관련 (shadcn/ui 기반, UI 컴포넌트 라이브러리)
-                        if (id.includes('node_modules/@radix-ui')) {
-                            return 'chunk-radix-ui'
-                        }
-
-                        // 8. Module Federation 관련
-                        if (
-                            id.includes('node_modules/@module-federation') ||
-                            id.includes('node_modules/webpack')
-                        ) {
-                            return 'chunk-module-federation'
-                        }
-
-                        // 9. Workspace 패키지들 (@repo/fe-ui, @repo/fe-utils)
-                        if (
-                            id.includes('packages/fe/ui') ||
-                            id.includes('@repo/fe-ui')
-                        ) {
-                            return 'chunk-fe-ui'
-                        }
-                        if (
-                            id.includes('packages/fe/utils') ||
-                            id.includes('@repo/fe-utils')
-                        ) {
-                            return 'chunk-fe-utils'
-                        }
-
-                        // 10. HTTP/API 관련 라이브러리
-                        if (id.includes('node_modules/axios')) {
-                            return 'chunk-http'
-                        }
-
-                        // 11. UI/알림 관련 라이브러리 (react-toastify 등)
-                        if (id.includes('node_modules/react-toastify')) {
-                            return 'chunk-ui-notification'
-                        }
-
-                        // 12. 유틸리티 라이브러리들 (기능별 그룹화)
-                        // 타입/액션 관련 유틸리티
-                        if (id.includes('node_modules/typesafe-actions')) {
-                            return 'chunk-utils'
-                        }
-                        // 클래스명/스타일 관련 유틸리티
-                        if (
-                            id.includes('node_modules/clsx') ||
-                            id.includes('node_modules/classnames') ||
-                            id.includes('node_modules/tailwind-merge') ||
-                            id.includes('node_modules/class-variance-authority')
-                        ) {
-                            return 'chunk-utils'
-                        }
-                        // 작은 유틸리티 라이브러리들
-                        if (
-                            id.includes('node_modules/tslib') ||
-                            id.includes('node_modules/nanoid') ||
-                            id.includes('node_modules/uuid')
-                        ) {
-                            return 'chunk-utils'
-                        }
-
-                        // 13. @ 스코프 패키지들 (Radix UI 제외, 작은 것들 묶기)
-                        if (
-                            id.includes('node_modules/@') &&
-                            !id.includes('node_modules/@radix-ui') &&
-                            !id.includes('node_modules/@reduxjs') &&
-                            !id.includes('node_modules/@tanstack') &&
-                            !id.includes('node_modules/@module-federation') &&
-                            !id.includes('node_modules/@repo') &&
-                            !id.includes('node_modules/@types') &&
-                            !id.includes('node_modules/@vitejs') &&
-                            !id.includes('node_modules/@tailwindcss') &&
-                            !id.includes('node_modules/@eslint') &&
-                            !id.includes('node_modules/@antdevx')
-                        ) {
-                            return 'chunk-scoped'
-                        }
-                        // @types 관련 (타입 정의 파일들, 작으니 묶기)
-                        if (id.includes('node_modules/@types')) {
-                            return 'chunk-scoped'
-                        }
-
-                        // 14. 기타 node_modules 라이브러리들 (마지막에 체크)
-                        if (id.includes('node_modules')) {
-                            return 'chunk-vendor'
-                        }
-                    },
+                    // Module Federation 사용 시 수동 청크 강제 분할은
+                    // 엔트리/런타임 체인 충돌을 만들 수 있어 기본 전략을 사용합니다.
+                    manualChunks: undefined,
                 },
                 // eval 사용 방지
                 external: [],
