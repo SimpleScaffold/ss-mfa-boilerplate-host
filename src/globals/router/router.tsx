@@ -1,23 +1,21 @@
 import { createBrowserRouter, RouteObject } from 'react-router'
 import HomePage from 'src/pages/HomePage'
-import React from 'react'
+import React, { Suspense, lazy } from 'react'
+import type { ComponentType } from 'react'
 import NotFoundPage from 'src/pages/extra/NotFoundPage.tsx'
 import MenuLayout from 'src/globals/layout/MenuLayout'
 
 // NOTE: https://reactrouter.com/start/data/routing
 // TODO: lazy loading 적용해야 할까? > 필요 없을거 같음
 
-const MODULES = import.meta.glob<{ default: React.FC }>(
-    'src/pages/url/**/*.tsx',
-    {
-        eager: true,
-    },
-)
+type RouteModule = { default: ComponentType }
+
+const MODULES = import.meta.glob<RouteModule>('src/pages/url/**/*.tsx')
 
 const generateRoutes = (
-    modules: Record<string, { default: React.FC }>,
+    modules: Record<string, () => Promise<RouteModule>>,
 ): RouteObject[] => {
-    return Object.entries(modules).map(([path, module]) => {
+    return Object.entries(modules).map(([path, loadModule]) => {
         // 파일 경로에서 'src/pages/url/' 이후의 경로를 추출
         const routePath = path
             .replace(/.*src\/pages\/url\//, '') // 'src/pages/url/' 부분 제거
@@ -26,11 +24,15 @@ const generateRoutes = (
             .replace(/\[(.*?)]/g, ':$1') // [param] -> :param 변환
             .toLowerCase()
 
-        const Component = module.default
+        const LazyComponent = lazy(loadModule)
 
         return {
             path: `/${routePath}`,
-            element: <Component />,
+            element: (
+                <Suspense fallback={null}>
+                    <LazyComponent />
+                </Suspense>
+            ),
         }
     })
 }

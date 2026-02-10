@@ -9,7 +9,7 @@
 import { useEffect, useState } from 'react'
 import { Outlet } from 'react-router'
 import { shallowEqual, useDispatch } from 'react-redux'
-import { DSlayout } from '@repo/fe-ui/dslayout'
+import { DSsideMenu } from '@repo/fe-ui/dssidemenu'
 
 import { menuAction } from 'src/features/menu/menuReducer'
 import { useAppSelector } from '../store/redux/reduxHooks'
@@ -40,13 +40,9 @@ const MenuLayout = () => {
     }, [baseMenu])
 
     return (
-        <DSlayout
-            menuType="side"
-            menu={finalMenu}
-            baseMenuLoading={baseMenuLoading}
-        >
+        <DSsideMenu menu={finalMenu} baseMenuLoading={baseMenuLoading}>
             <Outlet />
-        </DSlayout>
+        </DSsideMenu>
     )
 }
 
