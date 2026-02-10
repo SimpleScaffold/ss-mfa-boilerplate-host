@@ -303,6 +303,7 @@ export default defineConfig(({ command }) => {
         },
         build: {
             target: 'chrome107',
+
             rollupOptions: {
                 // Module Federation SDK의 eval 경고 억제
                 // 참고: doc/kr/11-code-quality/build-eval-warning.md
