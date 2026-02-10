@@ -313,6 +313,13 @@ export default defineConfig(({ command }) => {
                 allow: [repoRoot],
             },
         },
+        preview: {
+            host: extractHostFromOrigin(hostConfig.origin),
+            port: hostConfig.port,
+            strictPort: true,
+            open: false,
+            cors: true,
+        },
         build: {
             target: 'chrome107',
 
