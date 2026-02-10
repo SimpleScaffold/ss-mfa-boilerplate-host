@@ -158,11 +158,12 @@ export function startPlaneDistanceMeasurement(
                 position: midPosition,
                 label: {
                     text: distanceText,
-                    font: '14px sans-serif',
+                    font: DEFAULTS.LABEL_FONT,
                     fillColor: Cesium.Color.WHITE,
                     outlineColor: Cesium.Color.BLACK,
-                    outlineWidth: 2,
+                    outlineWidth: DEFAULTS.LABEL_OUTLINE_WIDTH,
                     style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                    disableDepthTestDistance: Number.POSITIVE_INFINITY,
                 },
             })
 

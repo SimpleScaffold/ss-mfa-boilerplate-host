@@ -14,4 +14,7 @@ export const ENTITY_IDS = {
 export const DEFAULTS = {
     LINE_WIDTH: 3,
     POINT_SIZE: 8,
+    /** 라벨 폰트 (확대해도 잘 보이도록 큼) */
+    LABEL_FONT: 'bold 20px sans-serif',
+    LABEL_OUTLINE_WIDTH: 3,
 } as const
