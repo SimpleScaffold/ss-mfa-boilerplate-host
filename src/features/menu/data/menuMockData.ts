@@ -146,6 +146,7 @@ export const MOCK_MENU_DATA: FinalMenuTree = [
             {
                 name: '기타',
                 menuType: 'GROUP',
+                icon: 'MoreHorizontal',
                 children: [
                     {
                         name: '영상분할',
@@ -403,6 +404,7 @@ export const MOCK_MENU_DATA: FinalMenuTree = [
             {
                 name: '양천구',
                 menuType: 'GROUP',
+                icon: 'MapPin',
                 children: [
                     {
                         name: '환경 정보 모니터링',
