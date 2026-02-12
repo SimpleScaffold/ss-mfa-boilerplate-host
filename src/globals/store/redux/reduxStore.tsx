@@ -6,7 +6,6 @@ import { sampleSaga, sampleSlice } from 'src/features/sample/sampleReducer.ts'
 import { themeSlice } from 'src/globals/theme/themeReducer.tsx'
 import { cesiumSaga, cesiumSlice } from 'src/globals/cesium/cesiumReducer'
 import { menuSaga, menuSlice } from 'src/features/menu/menuReducer.ts'
-import { MeasurementSlice } from 'src/features/function/measurement/measurementReducer.ts'
 
 const reducers = {
     routerReducer: routerSlice.reducer,
@@ -14,7 +13,6 @@ const reducers = {
     themeReducer: themeSlice.reducer,
     cesiumReducer: cesiumSlice.reducer,
     menuReducer: menuSlice.reducer,
-    measurementReducer: MeasurementSlice.reducer,
 }
 
 export function* rootSaga() {

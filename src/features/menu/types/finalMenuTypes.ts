@@ -58,8 +58,8 @@ export interface FinalMenuItem {
     /** 메뉴 이름 (표시용) */
     name: string
 
-    /** 메뉴 타입 */
-    menuType: FinalMenuType
+    /** 메뉴 타입 (GROUP | LEAF) */
+    type: FinalMenuType
 
     /** 정렬 순서 */
     sort?: number
@@ -70,8 +70,8 @@ export interface FinalMenuItem {
     /** 자식 메뉴 (GROUP 타입인 경우) */
     children?: FinalMenuItem[]
 
-    /** 라우팅 정보 (LEAF 타입인 경우 필수) */
-    route?: FinalRoute
+    /** URL (LEAF 타입인 경우 - 내부: actionCode, 외부: 전체 URL) */
+    url?: string
 
     /** 추가 메타데이터 */
     metadata?: {

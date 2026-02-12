@@ -12,7 +12,6 @@ import { shallowEqual, useDispatch } from 'react-redux'
 import { DSsideMenu } from '@repo/fe-ui/dssidemenu'
 
 import { menuAction } from 'src/features/menu/menuReducer'
-import { MeasurementAction } from 'src/features/function/measurement/measurementReducer'
 import { useAppSelector } from '../store/redux/reduxHooks'
 import type { FinalMenuTree } from 'src/features/menu/types/finalMenuTypes'
 import { convertToFinalMenu } from 'src/features/menu/utils/converter'
@@ -20,24 +19,10 @@ import { convertToFinalMenu } from 'src/features/menu/utils/converter'
 const MenuLayout = () => {
     const dispatch = useDispatch()
 
-    const handleInternalAction = useCallback(
-        (actionCode: string) => {
-            switch (actionCode) {
-                case 'executeDistancePlane':
-                    dispatch(
-                        MeasurementAction.executeDistancePlane({ unit: 'm' }),
-                    )
-                    break
-                case 'executeRemove':
-                case '17':
-                    dispatch(MeasurementAction.executeRemove(undefined as void))
-                    break
-                default:
-                    break
-            }
-        },
-        [dispatch],
-    )
+    const handleInternalAction = useCallback((actionCode: string) => {
+        // TODO: Micro App Registry로 actionCode별 기능 실행
+        void actionCode
+    }, [])
 
     const { baseMenu, baseMenuLoading } = useAppSelector(
         ({ menuReducer }) => ({
