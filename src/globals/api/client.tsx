@@ -8,6 +8,13 @@ export const client = axios.create({
     // xsrfHeaderName: 'X-CSRFToken',
 })
 
+export const remoteClient = axios.create({
+    baseURL: import.meta.env.VITE_API_HOST + '/api/remote' || '',
+    // import.meta.env.VITE_API_HOST,
+    // xsrfCookieName: 'csrftoken',
+    // xsrfHeaderName: 'X-CSRFToken',
+})
+
 export const stream = axios.create({
     baseURL: import.meta.env.VITE_API_HOST,
     responseType: 'stream',
