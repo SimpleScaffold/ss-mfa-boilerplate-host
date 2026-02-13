@@ -8,6 +8,7 @@
  */
 
 import { useCallback, useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Outlet } from 'react-router'
 import { shallowEqual, useDispatch } from 'react-redux'
 import { DSsideMenu } from '@repo/fe-ui/dssidemenu'
@@ -24,6 +25,10 @@ import { menuAction } from 'src/features/menu/menuReducer'
 import { useAppSelector } from '../store/redux/reduxHooks'
 import type { FinalMenuTree } from 'src/features/menu/types/finalMenuTypes'
 import { convertToFinalMenu } from 'src/features/menu/utils/converter'
+import {
+    ModalConstraintProvider,
+    useModalConstraint,
+} from './ModalConstraintContext'
 
 function isExternalUrl(url: string): boolean {
     return url.startsWith('http')
@@ -80,7 +85,7 @@ const MenuLayout = () => {
     }, [baseMenu])
 
     return (
-        <>
+        <ModalConstraintProvider>
             <DSsideMenu
                 menu={finalMenu}
                 baseMenuLoading={baseMenuLoading}
@@ -89,36 +94,71 @@ const MenuLayout = () => {
                 <Outlet />
             </DSsideMenu>
 
-            <DSmodal open={modalOpen} onOpenChange={setModalOpen}>
-                <DSmodalContent className="min-h-[320px] min-w-[480px]">
-                    <DSmodalHeader>
-                        <DSmodalTitle>
-                            {modalModule?.displayName ?? ''}
-                        </DSmodalTitle>
-                        <DSmodalClose />
-                    </DSmodalHeader>
-                    <DSmodalBody>
-                        {modalModule &&
-                            (() => {
-                                const remote = getRemoteConfigByName(
-                                    modalModule.remoteName,
-                                )
-                                const src = remote?.origin
-                                    ? `${remote.origin}${modalModule.path}`
-                                    : ''
-                                return src ? (
-                                    <iframe
-                                        src={src}
-                                        title={modalModule.displayName}
-                                        className="min-h-[280px] w-full min-w-0 rounded border-0"
-                                    />
-                                ) : null
-                            })()}
-                    </DSmodalBody>
-                </DSmodalContent>
-            </DSmodal>
-        </>
+            <MenuModal
+                open={modalOpen}
+                onOpenChange={setModalOpen}
+                modalModule={modalModule}
+            />
+        </ModalConstraintProvider>
     )
+}
+
+function MenuModal({
+    open,
+    onOpenChange,
+    modalModule,
+}: {
+    open: boolean
+    onOpenChange: (open: boolean) => void
+    modalModule: {
+        remoteName: string
+        path: string
+        displayName: string
+    } | null
+}) {
+    const ctx = useModalConstraint()
+    const constraintRef = ctx?.constraintRef
+
+    const modalElement = (
+        <DSmodal open={open} onOpenChange={onOpenChange}>
+            <DSmodalContent
+                className="min-h-[320px] min-w-[480px]"
+                constraintRef={constraintRef ?? undefined}
+                showOverlay={!constraintRef}
+            >
+                <DSmodalHeader>
+                    <DSmodalTitle>
+                        {modalModule?.displayName ?? ''}
+                    </DSmodalTitle>
+                    <DSmodalClose />
+                </DSmodalHeader>
+                <DSmodalBody>
+                    {modalModule &&
+                        (() => {
+                            const remote = getRemoteConfigByName(
+                                modalModule.remoteName,
+                            )
+                            const src = remote?.origin
+                                ? `${remote.origin}${modalModule.path}`
+                                : ''
+                            return src ? (
+                                <iframe
+                                    src={src}
+                                    title={modalModule.displayName}
+                                    className="min-h-[280px] w-full min-w-0 rounded border-0"
+                                />
+                            ) : null
+                        })()}
+                </DSmodalBody>
+            </DSmodalContent>
+        </DSmodal>
+    )
+
+    // constraintRef 내부에 포탈하여 모달이 지도 영역에 국한되도록 함
+    if (constraintRef?.current) {
+        return createPortal(modalElement, constraintRef.current)
+    }
+    return modalElement
 }
 
 export default MenuLayout
