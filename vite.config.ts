@@ -213,13 +213,13 @@ function mfVirtualRemotesPlugin(remotes: RemoteEntry[]): Plugin {
     }
 }
 
-export default defineConfig(({ command }) => {
+export default defineConfig(async ({ command }) => {
     const envMode = (process.env.MF_ENV || 'local') as EnvMode
-    const hostConfig = getHostConfig(envMode) as {
+    const hostConfig = (await getHostConfig(envMode)) as {
         origin: string
         port: number
     }
-    const remoteConfigs = getRemoteConfigs(envMode) as RemoteEntry[]
+    const remoteConfigs = (await getRemoteConfigs(envMode)) as RemoteEntry[]
 
     const isDev = command === 'serve'
     // dev에서는 MF shared가 optimizeDeps/prebuild 레이스를 유발할 수 있어 비활성화

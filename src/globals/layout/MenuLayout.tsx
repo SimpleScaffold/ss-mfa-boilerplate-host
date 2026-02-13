@@ -20,7 +20,7 @@ import {
     DSmodalClose,
     DSmodalBody,
 } from '@repo/fe-ui/dsmodal'
-import { getModalModuleMap, getRemoteConfigByName } from 'config'
+import { getModalModuleMapSync, getRemoteConfigByNameSync } from 'config'
 import { menuAction } from 'src/features/menu/menuReducer'
 import { useAppSelector } from '../store/redux/reduxHooks'
 import type { FinalMenuTree } from 'src/features/menu/types/finalMenuTypes'
@@ -36,7 +36,7 @@ function isExternalUrl(url: string): boolean {
 
 const MenuLayout = () => {
     const dispatch = useDispatch()
-    const modalModuleMap = getModalModuleMap()
+    const modalModuleMap = getModalModuleMapSync()
 
     const [modalOpen, setModalOpen] = useState(false)
     const [modalModule, setModalModule] = useState<{
@@ -135,7 +135,7 @@ function MenuModal({
                 <DSmodalBody>
                     {modalModule &&
                         (() => {
-                            const remote = getRemoteConfigByName(
+                            const remote = getRemoteConfigByNameSync(
                                 modalModule.remoteName,
                             )
                             const src = remote?.origin
