@@ -285,6 +285,10 @@ export default defineConfig(({ command }) => {
         resolve: {
             alias: [
                 {
+                    find: 'config',
+                    replacement: path.resolve(__dirname, '../../../../config'),
+                },
+                {
                     find: /^@\//,
                     replacement: `${path.resolve(__dirname, '../../../../packages/fe/ui/src')}/`,
                 },

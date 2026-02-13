@@ -19,7 +19,7 @@ export const MOCK_MENU_DATA: FinalMenuTree = [
                     {
                         name: '평면거리',
                         type: 'LEAF',
-                        url: 'executeDistancePlane',
+                        url: 'planar-distance',
                     },
                     {
                         name: '공간거리',
