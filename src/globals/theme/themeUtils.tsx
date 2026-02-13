@@ -6,20 +6,6 @@ import { themeAction } from 'src/globals/theme/themeReducer.tsx'
 
 const VARS_KEY = 'vite-ui-theme-vars'
 
-interface ThemeVarsStorage {
-    lightVars?: Record<string, string>
-    darkVars?: Record<string, string>
-}
-
-function parseThemeVarsStorage(raw: string | null): ThemeVarsStorage {
-    if (!raw) return {}
-    const parsed: unknown = JSON.parse(raw)
-    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-        return parsed as ThemeVarsStorage
-    }
-    return {}
-}
-
 // 테마 확인, 테마 수정, 다크모드 여부 Hook
 export const useTheme = () => {
     const context = useContext(ThemeContext)
@@ -41,10 +27,14 @@ export const getCustomVarsFromLocalStorage = (): {
     darkVars: Record<string, string>
 } => {
     try {
-        const parsed = parseThemeVarsStorage(localStorage.getItem(VARS_KEY))
+        const raw = localStorage.getItem(VARS_KEY)
+        if (!raw) {
+            return { lightVars: {}, darkVars: {} }
+        }
+        const parsed = JSON.parse(raw)
         return {
-            lightVars: parsed.lightVars ?? {},
-            darkVars: parsed.darkVars ?? {},
+            lightVars: parsed.lightVars || {},
+            darkVars: parsed.darkVars || {},
         }
     } catch {
         console.warn('Invalid vite-ui-theme-vars format in localStorage')
@@ -53,13 +43,16 @@ export const getCustomVarsFromLocalStorage = (): {
 }
 
 export const saveThemeVar = (theme: Theme, key: string, value: string) => {
-    const parsed = parseThemeVarsStorage(localStorage.getItem(VARS_KEY))
-    const themeKey = `${theme}Vars` as keyof ThemeVarsStorage
-    const existingVars = parsed[themeKey] ?? {}
+    const raw = localStorage.getItem(VARS_KEY)
+    const parsed = raw ? JSON.parse(raw) : {}
+    const themeKey = `${theme}Vars`
 
-    const updated: ThemeVarsStorage = {
+    const updated = {
         ...parsed,
-        [themeKey]: { ...existingVars, [key]: value },
+        [themeKey]: {
+            ...(parsed[themeKey] || {}),
+            [key]: value,
+        },
     }
 
     localStorage.setItem(VARS_KEY, JSON.stringify(updated))
@@ -106,13 +99,13 @@ export const handleReset = (theme: Theme) => {
     const raw = localStorage.getItem(VARS_KEY)
     if (!raw) return
 
-    const parsed = parseThemeVarsStorage(raw)
-    const themeKey = `${theme}Vars` as keyof ThemeVarsStorage
-    const themeVars = parsed[themeKey] ?? {}
-    const allKeys = new Set(Object.keys(themeVars))
+    const parsed = JSON.parse(raw)
+    const themeKey = `${theme}Vars`
 
-    const { [themeKey]: _removed, ...rest } = parsed
-    localStorage.setItem(VARS_KEY, JSON.stringify(rest))
+    const allKeys = new Set(Object.keys(parsed[themeKey] || {}))
+
+    delete parsed[themeKey]
+    localStorage.setItem(VARS_KEY, JSON.stringify(parsed))
 
     const currentTheme = localStorage.getItem('vite-ui-theme')
     if (currentTheme === theme) {
