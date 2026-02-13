@@ -10,13 +10,6 @@
 export type ActionCode = string
 
 /**
- * 라우트 타입
- * - INTERNAL: 내부 라우트 (React Router 등)
- * - EXTERNAL: 외부 URL 또는 마이크로앱
- */
-export type FinalRouteType = 'INTERNAL' | 'EXTERNAL'
-
-/**
  * 메뉴 타입
  * - GROUP: 그룹 메뉴 (하위 메뉴 존재)
  * - LEAF: 리프 노드 (실제 기능)
@@ -24,29 +17,11 @@ export type FinalRouteType = 'INTERNAL' | 'EXTERNAL'
 export type FinalMenuType = 'GROUP' | 'LEAF'
 
 /**
- * 내부 라우트 (액션 코드 사용)
+ * LEAF 메뉴의 url 타입
+ * - 내부(INTERNAL): actionCode (예: 'executeDistancePlane')
+ * - 외부(EXTERNAL): 전체 URL (예: 'http://...')
  */
-export interface InternalRoute {
-    routeType: 'INTERNAL'
-    /** 액션 코드 */
-    actionCode: ActionCode
-}
-
-/**
- * 외부 라우트 (URL 사용)
- */
-export interface ExternalRoute {
-    routeType: 'EXTERNAL'
-    /** 외부 URL (프로덕션 주소) */
-    url: string
-    /** 마이크로앱 이름 (마이크로앱인 경우, 환경 설정에서 URL 결정) */
-    microApp?: string
-}
-
-/**
- * 라우트 정보 (Discriminated Union)
- */
-export type FinalRoute = InternalRoute | ExternalRoute
+export type LeafUrl = string
 
 /**
  * 최종 메뉴 아이템 구조
@@ -70,8 +45,8 @@ export interface FinalMenuItem {
     /** 자식 메뉴 (GROUP 타입인 경우) */
     children?: FinalMenuItem[]
 
-    /** URL (LEAF 타입인 경우 - 내부: actionCode, 외부: 전체 URL) */
-    url?: string
+    /** URL (LEAF 전용 - 내부: actionCode, 외부: 전체 URL) */
+    url?: LeafUrl
 
     /** 추가 메타데이터 */
     metadata?: {
