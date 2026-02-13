@@ -6,6 +6,15 @@ import { themeAction } from 'src/globals/theme/themeReducer.tsx'
 
 const VARS_KEY = 'vite-ui-theme-vars'
 
+type StoredThemeVars = {
+    lightVars?: Record<string, string>
+    darkVars?: Record<string, string>
+}
+
+const parseStoredThemeVars = (raw: string): StoredThemeVars => {
+    return JSON.parse(raw) as StoredThemeVars
+}
+
 // 테마 확인, 테마 수정, 다크모드 여부 Hook
 export const useTheme = () => {
     const context = useContext(ThemeContext)
@@ -31,10 +40,10 @@ export const getCustomVarsFromLocalStorage = (): {
         if (!raw) {
             return { lightVars: {}, darkVars: {} }
         }
-        const parsed = JSON.parse(raw)
+        const parsed = parseStoredThemeVars(raw)
         return {
-            lightVars: parsed.lightVars || {},
-            darkVars: parsed.darkVars || {},
+            lightVars: parsed.lightVars ?? {},
+            darkVars: parsed.darkVars ?? {},
         }
     } catch {
         console.warn('Invalid vite-ui-theme-vars format in localStorage')
@@ -44,13 +53,14 @@ export const getCustomVarsFromLocalStorage = (): {
 
 export const saveThemeVar = (theme: Theme, key: string, value: string) => {
     const raw = localStorage.getItem(VARS_KEY)
-    const parsed = raw ? JSON.parse(raw) : {}
-    const themeKey = `${theme}Vars`
+    const parsed: StoredThemeVars = raw ? parseStoredThemeVars(raw) : {}
+    const themeKey = theme === 'dark' ? 'darkVars' : 'lightVars'
 
-    const updated = {
+    const existingVars = parsed[themeKey] ?? {}
+    const updated: StoredThemeVars = {
         ...parsed,
         [themeKey]: {
-            ...(parsed[themeKey] || {}),
+            ...existingVars,
             [key]: value,
         },
     }
@@ -99,10 +109,11 @@ export const handleReset = (theme: Theme) => {
     const raw = localStorage.getItem(VARS_KEY)
     if (!raw) return
 
-    const parsed = JSON.parse(raw)
-    const themeKey = `${theme}Vars`
+    const parsed = parseStoredThemeVars(raw)
+    const themeKey = theme === 'dark' ? 'darkVars' : 'lightVars'
+    const varsToReset = parsed[themeKey] ?? {}
 
-    const allKeys = new Set(Object.keys(parsed[themeKey] || {}))
+    const allKeys = new Set(Object.keys(varsToReset))
 
     delete parsed[themeKey]
     localStorage.setItem(VARS_KEY, JSON.stringify(parsed))

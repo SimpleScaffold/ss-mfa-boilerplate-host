@@ -17,11 +17,12 @@ export function findFinalMenuItem(
 ): FinalMenuItem | null {
     function search(items: FinalMenuItem[]): FinalMenuItem | null {
         for (const item of items) {
-            if (item.id === targetId) {
+            const { id, children }: { id?: string; children?: unknown[] } = item
+            if (id === targetId) {
                 return item
             }
-            if (item.children && item.children.length > 0) {
-                const found = search(item.children)
+            if (Array.isArray(children) && children.length > 0) {
+                const found = search(children as FinalMenuItem[])
                 if (found) {
                     return found
                 }
@@ -46,8 +47,11 @@ export function findAllFinalMenuLeaves(
         for (const item of items) {
             if (isFinalMenuLeaf(item)) {
                 leaves.push(item)
-            } else if (item.children) {
-                traverse(item.children)
+            } else {
+                const { children }: { children?: unknown[] } = item
+                if (Array.isArray(children) && children.length > 0) {
+                    traverse(children as FinalMenuItem[])
+                }
             }
         }
     }

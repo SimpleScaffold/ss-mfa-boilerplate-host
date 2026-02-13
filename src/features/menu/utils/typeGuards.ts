@@ -10,5 +10,6 @@ import type { FinalMenuItem } from '../types/finalMenuTypes'
  * @param menu - 확인할 FinalMenuItem
  */
 export function isFinalMenuLeaf(menu: FinalMenuItem): boolean {
-    return menu.type === 'LEAF' || !menu.children || menu.children.length === 0
+    const { type, children }: { type?: string; children?: unknown[] } = menu
+    return type === 'LEAF' || !children || (children?.length ?? 0) === 0
 }

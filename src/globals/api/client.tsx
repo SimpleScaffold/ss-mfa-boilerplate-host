@@ -1,7 +1,9 @@
 import axios from 'axios'
 
+const getApiBaseUrl = (): string => String(import.meta.env?.VITE_API_HOST ?? '')
+
 export const client = axios.create({
-    baseURL: import.meta.env.VITE_API_HOST || '',
+    baseURL: getApiBaseUrl(),
 
     // import.meta.env.VITE_API_HOST,
     // xsrfCookieName: 'csrftoken',
@@ -9,13 +11,13 @@ export const client = axios.create({
 })
 
 export const remoteClient = axios.create({
-    baseURL: import.meta.env.VITE_API_HOST + '/api/remote' || '',
+    baseURL: getApiBaseUrl() + '/api/remote' || '',
     // import.meta.env.VITE_API_HOST,
     // xsrfCookieName: 'csrftoken',
     // xsrfHeaderName: 'X-CSRFToken',
 })
 
 export const stream = axios.create({
-    baseURL: import.meta.env.VITE_API_HOST,
+    baseURL: getApiBaseUrl(),
     responseType: 'stream',
 })
