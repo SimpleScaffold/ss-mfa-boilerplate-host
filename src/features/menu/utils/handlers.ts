@@ -4,7 +4,6 @@
 
 import type { FinalMenuItem } from '../types/finalMenuTypes'
 import { isFinalMenuLeaf } from './typeGuards'
-import { getExternalBaseUrlSync } from 'config'
 
 /** url이 외부 URL(http로 시작)인지 판별 */
 function isExternalUrl(url: string): boolean {
@@ -38,11 +37,7 @@ export function handleFinalMenuClick(
 
     if (isExternalUrl(url)) {
         // 외부 URL: 절대 경로 그대로 사용
-        const baseUrl = getExternalBaseUrlSync()
-        console.log('[handleFinalMenuClick] External route:', url, {
-            baseUrl,
-            originalUrl: url,
-        })
+        console.log('[handleFinalMenuClick] External route:', url)
         window.open(url, '_blank')
     } else {
         // 내부 액션: actionCode
