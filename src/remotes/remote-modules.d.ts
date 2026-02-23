@@ -14,9 +14,3 @@ declare module 'remoteapp*/RemoteApp*' {
     const RemoteApp: ComponentType<Record<string, unknown>>
     export default RemoteApp
 }
-
-declare module 'measurement/ModalContent' {
-    import type { ComponentType } from 'react'
-    const ModalContent: ComponentType<{ path: string }>
-    export default ModalContent
-}

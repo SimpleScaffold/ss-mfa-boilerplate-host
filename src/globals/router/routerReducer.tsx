@@ -5,18 +5,10 @@ const prefix = 'router'
 
 const asyncRequests = [] as const
 
-const getHistoryState = (): unknown => {
-    const s = window.history.state as unknown
-    if (typeof s === 'object' && s !== null && 'usr' in s) {
-        return (s as { usr: unknown }).usr
-    }
-    return null
-}
-
 const localState = {
     location: {
         path: window.location.pathname || null,
-        state: getHistoryState(),
+        state: window.history.state?.usr || null,
     },
 }
 

@@ -90,11 +90,8 @@ const getErrorMessage = (
         responseData !== null &&
         'message' in responseData
     ) {
-        const obj = responseData as Record<string, unknown>
-        const msg = obj.message
-        if (typeof msg === 'string' && msg) {
-            errorMessage = msg
-        }
+        errorMessage =
+            (responseData as { message: string }).message || errorMessage
     }
 
     return errorMessage
@@ -107,11 +104,10 @@ const createRequestSaga = <PayloadType, ResponseType>(
 ) => {
     return function* fetchApiData(action: AnyAction) {
         try {
-            const payload = action.payload as PayloadType
-            const response = (yield call(
+            const response: AxiosResponse<ResponseType> = yield call(
                 api,
-                payload,
-            )) as AxiosResponse<ResponseType>
+                action.payload,
+            )
 
             const { status, data } = response
 
@@ -198,14 +194,11 @@ export function reduxMaker<
             initializeAll: () => {
                 return allInitialState
             },
-            initialize: (
-                state,
-                action: { payload: keyof typeof allInitialState },
-            ) => {
+            initialize: (state, action) => {
                 const key = action.payload
                 return {
                     ...state,
-                    [key]: allInitialState[key],
+                    [key]: allInitialState[key as keyof typeof allInitialState],
                 }
             },
             ...localReducers,
@@ -234,7 +227,7 @@ export function reduxMaker<
                                 ...state,
                                 [stateKey]: reducerUtils.error(
                                     state[stateKey]?.data,
-                                    action.payload as string,
+                                    action.payload,
                                 ),
                             }
                         },

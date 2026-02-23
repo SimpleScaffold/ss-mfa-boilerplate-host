@@ -3,11 +3,11 @@
  *
  * 애플리케이션의 메뉴를 관리하고 표시하는 레이아웃 컴포넌트입니다.
  * - 메뉴 데이터를 Redux에서 가져와서 표시
- * - 모달 모듈 클릭 시 Module Federation으로 Remote 컴포넌트 동적 로드
- * - Remote에서 addModal 요청 시 추가 모달 동적 생성 (postMessage)
+ * - 메뉴 초기화 및 로딩 처리
+ * - 모달 모듈(평면거리 등) 클릭 시 DSmodal로 마이크로프론트 로드
  */
 
-import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Outlet } from 'react-router'
 import { shallowEqual, useDispatch } from 'react-redux'
@@ -20,13 +20,11 @@ import {
     DSmodalClose,
     DSmodalBody,
 } from '@repo/fe-ui/dsmodal'
-import { MSG_HOST_READY } from '@repo/mf-modal-protocol'
-import { getRemoteConfigByNameSync, parseModalUrl } from 'config'
+import { getModalModuleMapSync, getRemoteConfigByNameSync } from 'config'
 import { menuAction } from 'src/features/menu/menuReducer'
 import { useAppSelector } from '../store/redux/reduxHooks'
 import type { FinalMenuTree } from 'src/features/menu/types/finalMenuTypes'
 import { convertToFinalMenu } from 'src/features/menu/utils/converter'
-import { useHostModalManager } from 'src/features/modal/useHostModalManager'
 import {
     ModalConstraintProvider,
     useModalConstraint,
@@ -36,43 +34,34 @@ function isExternalUrl(url: string): boolean {
     return url.startsWith('http')
 }
 
-/** remoteName → ModalContent lazy import (Module Federation) */
-const MODAL_CONTENT_LOADERS: Record<
-    string,
-    () => Promise<{ default: (props: { path: string }) => React.ReactNode }>
-> = {
-    measurement: () => import('measurement/ModalContent'),
-}
-
 const MenuLayout = () => {
     const dispatch = useDispatch()
-    const { openModal, closeModal, modals } = useHostModalManager()
+    const modalModuleMap = getModalModuleMapSync()
+
+    const [modalOpen, setModalOpen] = useState(false)
+    const [modalModule, setModalModule] = useState<{
+        remoteName: string
+        path: string
+        displayName: string
+    } | null>(null)
 
     const handleInternalAction = useCallback(
-        (url: string, displayName?: string) => {
+        (url: string) => {
+            // 모달로 열리는 마이크로프론트 모듈
+            const moduleInfo = modalModuleMap[url]
+            if (moduleInfo) {
+                setModalModule(moduleInfo)
+                setModalOpen(true)
+                return
+            }
             // 외부 URL
             if (isExternalUrl(url)) {
                 window.open(url, '_blank')
                 return
             }
-            // 모달: url 형식 {remoteName}/{path} (예: measurement/planar-distance)
-            // remotes에서 remoteName 조회
-            const parsed = parseModalUrl(url)
-            if (parsed) {
-                const remote = getRemoteConfigByNameSync(parsed.remoteName)
-                if (remote?.origin) {
-                    openModal({
-                        remoteName: parsed.remoteName,
-                        path: parsed.path,
-                        displayName:
-                            displayName ?? remote.displayName ?? parsed.path,
-                    })
-                    return
-                }
-            }
             // TODO: 기타 내부 액션 (actionCode)
         },
-        [openModal],
+        [modalModuleMap],
     )
 
     const { baseMenu, baseMenuLoading } = useAppSelector(
@@ -86,9 +75,11 @@ const MenuLayout = () => {
     const [finalMenu, setFinalMenu] = useState<FinalMenuTree>([])
 
     useEffect(() => {
+        // 메뉴 불러오기
         dispatch(menuAction.getBaseMenu(undefined))
     }, [dispatch])
 
+    // 메뉴 데이터가 로드되면 메뉴 타입을 최종 메뉴 타입으로 변환
     useEffect(() => {
         setFinalMenu(convertToFinalMenu(baseMenu))
     }, [baseMenu])
@@ -103,122 +94,67 @@ const MenuLayout = () => {
                 <Outlet />
             </DSsideMenu>
 
-            {modals.map((modal) => (
-                <MenuModal
-                    key={modal.id}
-                    modal={modal}
-                    onClose={() => closeModal(modal.id)}
-                    onOpenChange={(open) => !open && closeModal(modal.id)}
-                />
-            ))}
+            <MenuModal
+                open={modalOpen}
+                onOpenChange={setModalOpen}
+                modalModule={modalModule}
+            />
         </ModalConstraintProvider>
     )
 }
 
-interface MenuModalProps {
-    modal: {
-        id: string
+function MenuModal({
+    open,
+    onOpenChange,
+    modalModule,
+}: {
+    open: boolean
+    onOpenChange: (open: boolean) => void
+    modalModule: {
         remoteName: string
         path: string
         displayName: string
-        width?: number
-        height?: number
-        x?: number
-        y?: number
-        open: boolean
-    }
-    onClose: () => void
-    onOpenChange: (open: boolean) => void
-}
-
-function RemoteModalContent({
-    remoteName,
-    path,
-}: {
-    remoteName: string
-    path: string
+    } | null
 }) {
-    const [Component, setComponent] = useState<
-        ((p: { path: string }) => React.ReactNode) | null
-    >(null)
-    const [error, setError] = useState<Error | null>(null)
-
-    useEffect(() => {
-        const load = MODAL_CONTENT_LOADERS[remoteName]
-        if (!load) {
-            setError(new Error(`Unknown modal remote: ${remoteName}`))
-            return
-        }
-        load()
-            .then((m) => setComponent(() => m.default))
-            .catch(setError)
-    }, [remoteName])
-
-    if (error)
-        return (
-            <div className="p-4 text-red-600">로드 실패: {error.message}</div>
-        )
-    if (!Component)
-        return (
-            <div className="flex min-h-[280px] items-center justify-center p-4">
-                로딩 중...
-            </div>
-        )
-    return <Component path={path} />
-}
-
-function MenuModal({ modal, onClose, onOpenChange }: MenuModalProps) {
     const ctx = useModalConstraint()
     const constraintRef = ctx?.constraintRef
 
-    // MF 로드 시 Remote(useHostModalApi)에 Host 준비 메시지 전송 (addModal 가능)
-    useEffect(() => {
-        if (!modal.open) return
-        const t = setTimeout(() => {
-            window.postMessage({ type: MSG_HOST_READY }, '*')
-        }, 100)
-        return () => clearTimeout(t)
-    }, [modal.open, modal.id])
-
     const modalElement = (
-        <DSmodal open={modal.open} onOpenChange={onOpenChange}>
+        <DSmodal open={open} onOpenChange={onOpenChange}>
             <DSmodalContent
                 className="min-h-[320px] min-w-[480px]"
                 constraintRef={constraintRef ?? undefined}
                 showOverlay={!constraintRef}
-                initialSize={
-                    modal.width != null && modal.height != null
-                        ? { width: modal.width, height: modal.height }
-                        : undefined
-                }
-                initialPosition={
-                    modal.x != null && modal.y != null
-                        ? { x: modal.x, y: modal.y }
-                        : undefined
-                }
             >
                 <DSmodalHeader>
-                    <DSmodalTitle>{modal.displayName}</DSmodalTitle>
+                    <DSmodalTitle>
+                        {modalModule?.displayName ?? ''}
+                    </DSmodalTitle>
                     <DSmodalClose />
                 </DSmodalHeader>
                 <DSmodalBody>
-                    <Suspense
-                        fallback={
-                            <div className="flex min-h-[280px] items-center justify-center p-4">
-                                로딩 중...
-                            </div>
-                        }
-                    >
-                        <RemoteModalContent
-                            remoteName={modal.remoteName}
-                            path={modal.path}
-                        />
-                    </Suspense>
+                    {modalModule &&
+                        (() => {
+                            const remote = getRemoteConfigByNameSync(
+                                modalModule.remoteName,
+                            )
+                            const src = remote?.origin
+                                ? `${remote.origin}${modalModule.path}`
+                                : ''
+                            return src ? (
+                                <iframe
+                                    src={src}
+                                    title={modalModule.displayName}
+                                    className="min-h-[280px] w-full min-w-0 rounded border-0"
+                                />
+                            ) : null
+                        })()}
                 </DSmodalBody>
             </DSmodalContent>
         </DSmodal>
     )
 
+    // constraintRef 내부에 포탈하여 모달이 지도 영역에 국한되도록 함
     if (constraintRef?.current) {
         return createPortal(modalElement, constraintRef.current)
     }

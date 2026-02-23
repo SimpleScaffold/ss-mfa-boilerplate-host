@@ -3,10 +3,7 @@ import type { FinalMenuTree } from '../types/finalMenuTypes'
 /**
  * 메뉴 Mock 데이터
  * - type: GROUP | LEAF
- * - url: LEAF 전용
- *   - 모달: {remoteName}/{path} (예: measurement/planar-distance) → remotes에서 조회
- *   - 외부: http로 시작하는 전체 URL
- *   - 기타: actionCode (TODO)
+ * - url: LEAF 전용 (내부: actionCode, 외부: 전체 URL)
  */
 export const MOCK_MENU_DATA: FinalMenuTree = [
     {
@@ -22,37 +19,37 @@ export const MOCK_MENU_DATA: FinalMenuTree = [
                     {
                         name: '평면거리',
                         type: 'LEAF',
-                        url: 'measurement/planar-distance',
+                        url: 'planar-distance',
                     },
                     {
                         name: '공간거리',
                         type: 'LEAF',
-                        url: 'measurement/spatial-distance',
+                        url: '12',
                     },
                     {
                         name: '수직거리',
                         type: 'LEAF',
-                        url: 'measurement/vertical-distance',
+                        url: '13',
                     },
                     {
                         name: '면적측정',
                         type: 'LEAF',
-                        url: 'measurement/area-measurement',
+                        url: '14',
                     },
                     {
                         name: '표고측정',
                         type: 'LEAF',
-                        url: 'measurement/location-measurement',
+                        url: '15',
                     },
                     {
                         name: '부피 측정',
                         type: 'LEAF',
-                        url: 'measurement/volume-measurement',
+                        url: '16',
                     },
                     {
                         name: '제거',
                         type: 'LEAF',
-                        url: 'measurement/measurement-remove',
+                        url: '17',
                     },
                 ],
             },
