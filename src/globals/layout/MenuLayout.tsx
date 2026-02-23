@@ -138,8 +138,9 @@ function MenuModal({
                             const remote = getRemoteConfigByNameSync(
                                 modalModule.remoteName,
                             )
-                            const src = remote?.origin
-                                ? `${remote.origin}${modalModule.path}`
+                            const baseUrl = remote?.url ?? ''
+                            const src = baseUrl
+                                ? `${baseUrl.replace(/\/$/, '')}${modalModule.path}`
                                 : ''
                             return src ? (
                                 <iframe

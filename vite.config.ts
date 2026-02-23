@@ -17,20 +17,28 @@ const repoRoot = path.resolve(__dirname, '../../../../')
 
 type RemoteEntry = {
     name?: string
+    url?: string
     displayName?: string
     modulePath?: string
     enabled?: boolean
     manifestUrl?: string
-    origin?: string
-    url?: string
 }
 
 const cesiumBaseUrl = 'cesiumStatic'
 const cesiumSource = path.join(repoRoot, 'node_modules/cesium/Build/Cesium')
 
-function extractHostFromOrigin(origin: string): string {
-    const match = origin.replace(/^https?:\/\//, '').split(':')[0]
-    return match || 'localhost'
+function extractHostFromUrl(url: string): string {
+    const u = (url ?? '').replace(/^https?:\/\//, '').split(':')[0]
+    return u || 'localhost'
+}
+
+function getPortFromUrl(url: string): number {
+    try {
+        const p = new URL(url).port
+        return p ? parseInt(p, 10) : 5173
+    } catch {
+        return 5173
+    }
 }
 
 function cesiumStaticPlugin(): Plugin {
@@ -215,10 +223,15 @@ function mfVirtualRemotesPlugin(remotes: RemoteEntry[]): Plugin {
 
 export default defineConfig(async ({ command }) => {
     const envMode = (process.env.MF_ENV || 'local') as EnvMode
-    const hostConfig = (await getHostConfig(envMode)) as {
-        origin: string
-        port: number
+    const hostConfig = await getHostConfig(envMode)
+    if (!hostConfig?.url) {
+        throw new Error(
+            'Host 설정을 config/env (예: local.ts)에 추가해주세요. (hosts[].url)',
+        )
     }
+    const baseUrl = hostConfig.url
+    const port =
+        (hostConfig as { port?: number }).port ?? getPortFromUrl(baseUrl)
     const remoteConfigs = (await getRemoteConfigs(envMode)) as RemoteEntry[]
 
     const isDev = command === 'serve'
@@ -305,21 +318,21 @@ export default defineConfig(async ({ command }) => {
             preserveSymlinks: false,
         },
         server: {
-            origin: hostConfig.origin,
-            port: hostConfig.port,
+            origin: baseUrl,
+            port,
             open: false, // 오케스트레이터에서 안정화 후 open
             cors: true,
             hmr: {
-                port: hostConfig.port,
-                host: extractHostFromOrigin(hostConfig.origin),
+                port,
+                host: extractHostFromUrl(baseUrl),
             },
             fs: {
                 allow: [repoRoot],
             },
         },
         preview: {
-            host: extractHostFromOrigin(hostConfig.origin),
-            port: hostConfig.port,
+            host: extractHostFromUrl(baseUrl),
+            port,
             strictPort: true,
             open: false,
             cors: true,
