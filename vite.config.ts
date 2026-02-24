@@ -134,6 +134,28 @@ const REMOTE_EXPOSE_PATHS: Record<string, Record<string, string>> = {
     },
 }
 
+/** dev 모드용 virtual:mf-remote-imports 소스 생성 (가독성용 분리) */
+function getDevRemoteImportsSource(exposePathsJson: string): string {
+    return [
+        '/** virtual:mf-remote-imports (dev: 원격 URL import, 핫 리로드) */',
+        "import { getRemoteConfigByNameSync } from 'config'",
+        '',
+        `const REMOTE_EXPOSE_PATHS = ${exposePathsJson}`,
+        '',
+        'export function loadRemoteModule(modulePath) {',
+        "  const [remoteName, exposeName] = modulePath.split('/')",
+        '  const remote = getRemoteConfigByNameSync(remoteName)',
+        '  if (!remote?.url) return Promise.reject(new Error(`Remote not found: ${remoteName}`))',
+        '  const paths = REMOTE_EXPOSE_PATHS[remoteName]',
+        '  const exposePath = paths?.[exposeName]',
+        '  if (!exposePath) return Promise.reject(new Error(`Expose not found: ${modulePath}`))',
+        "  const base = remote.url.replace(/\\/$/, '')",
+        '  const fullUrl = base + exposePath',
+        '  return import(/* @vite-ignore */ fullUrl).then(m => ({ default: m.default }))',
+        '}',
+    ].join('\n')
+}
+
 /**
  * config/env 기반 remote 설정 + loadRemoteModule.
  * - dev: 원격 URL로 import() → remote yarn dev 핫 리로드 가능
@@ -195,24 +217,7 @@ function mfVirtualRemotesPlugin(
             }
 
             if (id === RESOLVED_IMPORTS_ID) {
-                if (isDev) {
-                    return (
-                        `/** virtual:mf-remote-imports (dev: 원격 URL import, 핫 리로드) */\n` +
-                        `import { getRemoteConfigByNameSync } from 'config'\n\n` +
-                        `const REMOTE_EXPOSE_PATHS = ${exposePathsJson}\n\n` +
-                        `export function loadRemoteModule(modulePath) {\n` +
-                        `    const [remoteName, exposeName] = modulePath.split('/')\n` +
-                        `    const remote = getRemoteConfigByNameSync(remoteName)\n` +
-                        `    if (!remote?.url) return Promise.reject(new Error(\`Remote not found: \${remoteName}\`))\n` +
-                        `    const paths = REMOTE_EXPOSE_PATHS[remoteName]\n` +
-                        `    const exposePath = paths?.[exposeName]\n` +
-                        `    if (!exposePath) return Promise.reject(new Error(\`Expose not found: \${modulePath}\`))\n` +
-                        `    const base = remote.url.replace(/\\/$/, '')\n` +
-                        `    const fullUrl = base + exposePath\n` +
-                        `    return import(/* @vite-ignore */ fullUrl).then(m => ({ default: m.default }))\n` +
-                        `}\n`
-                    )
-                }
+                if (isDev) return getDevRemoteImportsSource(exposePathsJson)
                 const cases = allMfPaths
                     .map((modulePath) => {
                         const [remoteName, exposeName] = modulePath.split('/')
@@ -260,7 +265,8 @@ export default defineConfig(async ({ command }) => {
         MOCK_MENU_DATA,
         remoteNames,
     )
-    const isDev = command === 'serve'
+    // 로컬 dev(yarn dev)만 URL import, 나머지(dev:remote, build:server-*)는 Module Federation
+    const isDev = command === 'serve' && envMode === ENV_MODE.LOCAL
 
     const remotesForMf = remoteConfigs
         .filter(
