@@ -18,9 +18,9 @@ import { loadRemoteModule } from 'virtual:mf-remote-imports'
  * - 내부 재시도: 같은 lazy import Promise 내부에서 빠르게 재시도
  * - 외부 재시도: lazy 자체를 "재생성"해서(= React.lazy 실패 캐시 회피) 다시 import
  */
-const REMOTE_LOAD_MAX_RETRIES = 3
+const REMOTE_LOAD_MAX_RETRIES = 1
 const REMOTE_LOAD_RETRY_DELAY_MS = 500
-const OUTER_REMOTE_LOAD_MAX_RETRIES = 20
+const OUTER_REMOTE_LOAD_MAX_RETRIES = 2
 const OUTER_REMOTE_LOAD_RETRY_DELAY_MS = 1000
 
 function getErrorMessage(error: unknown): string {
