@@ -1,6 +1,6 @@
 import react from '@vitejs/plugin-react-swc'
 import tailwindcss from '@tailwindcss/vite'
-import { federation } from '@module-federation/vite'
+import federation from '@originjs/vite-plugin-federation'
 import { defineConfig, type Plugin } from 'vite'
 import { viteStaticCopy } from 'vite-plugin-static-copy'
 import fs from 'node:fs'
@@ -9,8 +9,11 @@ import { fileURLToPath } from 'node:url'
 import {
     getHostConfig,
     getRemoteConfigs,
+    getModalModulePathsFromMenu,
+    ENV_MODE,
     type EnvMode,
 } from '../../../../config'
+import { MOCK_MENU_DATA } from './src/features/menu/data/menuMockData'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const repoRoot = path.resolve(__dirname, '../../../../')
@@ -120,37 +123,61 @@ function feUiResolvePlugin(): Plugin {
     }
 }
 
-// REMOTE_APP_2_ENTRY 제거: 동적으로 처리됨
+/**
+ * Remote별 expose 이름 → Vite dev 서버 내 소스 경로.
+ * yarn dev로 띄운 remote에서 해당 URL로 import()하여 로드함.
+ */
+const REMOTE_EXPOSE_PATHS: Record<string, Record<string, string>> = {
+    measurement: {
+        Measurement: '/measurement',
+        PlanarDistance: '/planar-distance',
+    },
+}
 
 /**
- * `config/env/*.ts` 기반 remote 설정을 "파일 생성 없이" 클라이언트 코드에서 사용할 수 있게
- * 가상 모듈로 제공합니다.
- *
- * - `virtual:mf-remotes-config`: REMOTE_APPS (라우팅/표시용 메타데이터)
- * - `virtual:mf-remote-imports`: loadRemoteModule() (MF 정적 import 매핑)
+ * config/env 기반 remote 설정 + loadRemoteModule.
+ * - dev: 원격 URL로 import() → remote yarn dev 핫 리로드 가능
+ * - build: MF getRemote 사용 → 프로덕션 최적화
  */
-function mfVirtualRemotesPlugin(remotes: RemoteEntry[]): Plugin {
+function mfVirtualRemotesPlugin(
+    remotes: RemoteEntry[],
+    modalModulePaths: string[],
+    isDev: boolean,
+): Plugin {
     const CONFIG_ID = 'virtual:mf-remotes-config'
     const IMPORTS_ID = 'virtual:mf-remote-imports'
     const RESOLVED_CONFIG_ID = `\0${CONFIG_ID}`
     const RESOLVED_IMPORTS_ID = `\0${IMPORTS_ID}`
 
-    function normalizeRemoteMeta() {
-        const enabled = (remotes || []).filter((r) => r.enabled !== false)
-        return enabled.map((r, i) => {
-            const idx = i + 1
-            const id = r.name || `remoteapp${idx}`
-            const name = r.displayName || `Remote App ${idx}`
-            const modulePath = r.modulePath || `${id}/RemoteApp${idx}`
-            return {
-                id,
-                name,
-                modulePath,
-                fullPage: true,
-                enabled: true,
-            }
+    const builtRemotes = remotes.filter(
+        (r) => r.enabled !== false && r.name && REMOTE_EXPOSE_PATHS[r.name],
+    )
+    const mainExpose = (name: string) =>
+        REMOTE_EXPOSE_PATHS[name]?.Measurement ??
+        Object.keys(REMOTE_EXPOSE_PATHS[name] || {})[0]
+    const mainModulePaths = builtRemotes.map(
+        (r) => `${r.name}/${mainExpose(r.name!)}`,
+    )
+    const allMfPaths = [...new Set([...mainModulePaths, ...modalModulePaths])]
+
+    const itemsStr = builtRemotes
+        .map((r) => {
+            const id = r.name!
+            const name = r.displayName || id
+            const modulePath = `${id}/${mainExpose(id)}`
+            return (
+                `    {\n` +
+                `        id: ${JSON.stringify(id)},\n` +
+                `        name: ${JSON.stringify(name)},\n` +
+                `        modulePath: ${JSON.stringify(modulePath)},\n` +
+                `        fullPage: true,\n` +
+                `        enabled: true,\n` +
+                `    },`
+            )
         })
-    }
+        .join('\n')
+
+    const exposePathsJson = JSON.stringify(REMOTE_EXPOSE_PATHS)
 
     return {
         name: 'mf-virtual-remotes',
@@ -161,56 +188,49 @@ function mfVirtualRemotesPlugin(remotes: RemoteEntry[]): Plugin {
         },
         load(id) {
             if (id === RESOLVED_CONFIG_ID) {
-                const items = normalizeRemoteMeta()
-                    .map(
-                        (r) =>
-                            `    {\n` +
-                            `        id: ${JSON.stringify(r.id)},\n` +
-                            `        name: ${JSON.stringify(r.name)},\n` +
-                            `        modulePath: ${JSON.stringify(r.modulePath)},\n` +
-                            `        fullPage: true,\n` +
-                            `        enabled: true,\n` +
-                            `    },`,
-                    )
-                    .join('\n')
-
                 return (
-                    `/**\n` +
-                    ` * ⚠ VIRTUAL MODULE\n` +
-                    ` *\n` +
-                    ` * 생성 소스: config/env/*.ts (예: local.ts)\n` +
-                    ` * 생성 시점: ${new Date().toISOString()}\n` +
-                    ` */\n\n` +
-                    `export const REMOTE_APPS = [\n` +
-                    `${items}\n` +
-                    `]\n`
+                    `/** virtual:mf-remotes-config */\n\n` +
+                    `export const REMOTE_APPS = [\n${itemsStr || ''}\n]\n`
                 )
             }
 
             if (id === RESOLVED_IMPORTS_ID) {
-                const items = normalizeRemoteMeta()
-                const cases = items
-                    .map(
-                        (r) =>
-                            `        case ${JSON.stringify(r.modulePath)}:\n` +
-                            `            return import(${JSON.stringify(r.modulePath)})`,
+                if (isDev) {
+                    return (
+                        `/** virtual:mf-remote-imports (dev: 원격 URL import, 핫 리로드) */\n` +
+                        `import { getRemoteConfigByNameSync } from 'config'\n\n` +
+                        `const REMOTE_EXPOSE_PATHS = ${exposePathsJson}\n\n` +
+                        `export function loadRemoteModule(modulePath) {\n` +
+                        `    const [remoteName, exposeName] = modulePath.split('/')\n` +
+                        `    const remote = getRemoteConfigByNameSync(remoteName)\n` +
+                        `    if (!remote?.url) return Promise.reject(new Error(\`Remote not found: \${remoteName}\`))\n` +
+                        `    const paths = REMOTE_EXPOSE_PATHS[remoteName]\n` +
+                        `    const exposePath = paths?.[exposeName]\n` +
+                        `    if (!exposePath) return Promise.reject(new Error(\`Expose not found: \${modulePath}\`))\n` +
+                        `    const base = remote.url.replace(/\\/$/, '')\n` +
+                        `    const fullUrl = base + exposePath\n` +
+                        `    return import(/* @vite-ignore */ fullUrl).then(m => ({ default: m.default }))\n` +
+                        `}\n`
                     )
+                }
+                const cases = allMfPaths
+                    .map((modulePath) => {
+                        const [remoteName, exposeName] = modulePath.split('/')
+                        const exposePath = `./${exposeName}`
+                        return (
+                            `        case ${JSON.stringify(modulePath)}:\n` +
+                            `            return getRemote(${JSON.stringify(remoteName)}, ${JSON.stringify(exposePath)}).then(unwrapDefault)`
+                        )
+                    })
                     .join('\n')
-
                 return (
-                    `/**\n` +
-                    ` * ⚠ VIRTUAL MODULE\n` +
-                    ` *\n` +
-                    ` * 생성 소스: config/env/*.ts (예: local.ts)\n` +
-                    ` * 생성 시점: ${new Date().toISOString()}\n` +
-                    ` */\n\n` +
+                    `/** virtual:mf-remote-imports (build: MF) */\n` +
+                    `import { __federation_method_getRemote as getRemote, __federation_method_unwrapDefault as unwrapDefault } from "virtual:__federation__"\n\n` +
                     `export function loadRemoteModule(modulePath) {\n` +
                     `    switch (modulePath) {\n` +
-                    `${cases || ''}\n` +
+                    `${cases}\n` +
                     `        default:\n` +
-                    `            return Promise.reject(\n` +
-                    '                new Error(`Unknown remote module path: ${modulePath}`),\n' +
-                    `            )\n` +
+                    `            return Promise.reject(new Error(\`Unknown remote module path: \${modulePath}\`))\n` +
                     `    }\n` +
                     `}\n`
                 )
@@ -222,7 +242,7 @@ function mfVirtualRemotesPlugin(remotes: RemoteEntry[]): Plugin {
 }
 
 export default defineConfig(async ({ command }) => {
-    const envMode = (process.env.MF_ENV || 'local') as EnvMode
+    const envMode = (process.env.MF_ENV || ENV_MODE.LOCAL) as EnvMode
     const hostConfig = await getHostConfig(envMode)
     if (!hostConfig?.url) {
         throw new Error(
@@ -233,24 +253,41 @@ export default defineConfig(async ({ command }) => {
     const port =
         (hostConfig as { port?: number }).port ?? getPortFromUrl(baseUrl)
     const remoteConfigs = (await getRemoteConfigs(envMode)) as RemoteEntry[]
-
+    const remoteNames = new Set(
+        remoteConfigs.map((r) => r.name).filter((n): n is string => Boolean(n)),
+    )
+    const modalModulePaths = getModalModulePathsFromMenu(
+        MOCK_MENU_DATA,
+        remoteNames,
+    )
     const isDev = command === 'serve'
-    // dev에서는 MF shared가 optimizeDeps/prebuild 레이스를 유발할 수 있어 비활성화
-    const shared: Record<string, { singleton?: boolean }> = isDev
-        ? {}
-        : {
-              react: { singleton: true },
-              'react-dom': { singleton: true },
-          }
+
+    const remotesForMf = remoteConfigs
+        .filter(
+            (r) =>
+                r.name &&
+                r.url &&
+                Object.prototype.hasOwnProperty.call(
+                    REMOTE_EXPOSE_PATHS,
+                    r.name,
+                ),
+        )
+        .map((r) => {
+            const base = (r.url ?? '').replace(/\/$/, '')
+            return [r.name, `${base}/assets/remoteEntry.js`] as const
+        })
+    const remotes = Object.fromEntries(remotesForMf)
+    const shared = isDev
+        ? []
+        : { react: { singleton: true }, 'react-dom': { singleton: true } }
 
     return {
         plugins: [
             feUiResolvePlugin(),
-            mfVirtualRemotesPlugin(remoteConfigs),
+            mfVirtualRemotesPlugin(remoteConfigs, modalModulePaths, isDev),
             react(),
             tailwindcss(),
             cesiumStaticPlugin(),
-            // Cesium 정적 파일을 빌드 시 복사 (preview 모드에서도 사용 가능하도록)
             viteStaticCopy({
                 targets: [
                     {
@@ -261,35 +298,8 @@ export default defineConfig(async ({ command }) => {
             }),
             federation({
                 name: 'hostapp1',
-                manifest: true,
-                remotes: remoteConfigs.reduce(
-                    (acc, r) => {
-                        if (r.name && r.manifestUrl) {
-                            acc[r.name] = {
-                                type: 'module' as const,
-                                name: r.name,
-                                entry: r.manifestUrl,
-                            }
-                        }
-                        return acc
-                    },
-                    {} as Record<
-                        string,
-                        { type: 'module'; name: string; entry: string }
-                    >,
-                ),
+                remotes,
                 shared,
-                dts: false,
-                // hostInit을 엔트리 파일에 포함 (HTML이 아닌 엔트리에서 실행)
-                hostInitInjectLocation: 'entry',
-                // eval 사용을 피하기 위한 설정
-                runtimePlugins: [],
-                // SDK의 불필요한 기능 비활성화 (eval 사용 방지)
-                ...(isDev && {
-                    dev: {
-                        disableRuntimePlugins: true,
-                    },
-                }),
             }),
         ],
         define: {
@@ -339,40 +349,19 @@ export default defineConfig(async ({ command }) => {
         },
         build: {
             target: 'chrome107',
-
             rollupOptions: {
-                // Module Federation SDK의 eval 경고 억제
-                // 참고: doc/kr/11-code-quality/build-eval-warning.md
-                onwarn(warning, warn) {
-                    if (
-                        warning.code === 'EVAL' &&
-                        warning.id?.includes('@module-federation/sdk')
-                    ) {
-                        return
-                    }
-                    warn(warning)
-                },
                 output: {
                     format: 'es',
-                    // eval 사용 방지를 위한 설정
                     generatedCode: {
                         constBindings: true,
                         objectShorthand: true,
                     },
-                    // eval 대신 함수로 변환
-                    strict: false,
-                    // Module Federation 사용 시 수동 청크 강제 분할은
-                    // 엔트리/런타임 체인 충돌을 만들 수 있어 기본 전략을 사용합니다.
-                    manualChunks: undefined,
                 },
-                // eval 사용 방지
-                external: [],
             },
             commonjsOptions: {
                 transformMixedEsModules: true,
             },
             minify: 'esbuild',
-            // eval 사용 방지
             sourcemap: false,
         },
     }

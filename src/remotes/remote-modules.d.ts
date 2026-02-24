@@ -1,16 +1,17 @@
 /**
  * Remote module 타입 선언(공통)
  *
- * Remote 앱을 추가할 때마다 `remoteappX.d.ts`를 만들지 않도록,
- * Module Federation remote 모듈 경로를 와일드카드로 선언합니다.
- *
- * 규칙:
- * - modulePath: `remoteapp<*>/RemoteApp<*>`
- *
- * 더 엄격한 props 타입이 필요하면, 특정 remote에 대해서만 별도 declare module을 추가하세요.
+ * @originjs/vite-plugin-federation: remote expose 경로에 대한 타입 선언.
+ * config remotes의 name으로 import (예: measurement/PlanarDistance).
  */
-declare module 'remoteapp*/RemoteApp*' {
+declare module 'measurement/*' {
     import { ComponentType } from 'react'
-    const RemoteApp: ComponentType<Record<string, unknown>>
-    export default RemoteApp
+    const C: ComponentType<Record<string, unknown>>
+    export default C
+}
+
+declare module 'remote/*' {
+    import { ComponentType } from 'react'
+    const C: ComponentType<Record<string, unknown>>
+    export default C
 }

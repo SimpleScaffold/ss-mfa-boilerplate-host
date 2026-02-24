@@ -1,9 +1,20 @@
-import { createRoot } from 'react-dom/client'
+import React from 'react'
+import ReactDOM from 'react-dom/client'
 import App from 'src/App'
 import { Provider } from 'react-redux'
 import store from 'src/globals/store/redux/reduxStore.tsx'
 
 import '@repo/fe-ui/styles'
+
+// Remote 앱이 yarn dev로 로드될 때 단일 React 인스턴스 사용 (shared-deps에서 참조)
+if (typeof window !== 'undefined') {
+    ;(
+        window as unknown as { __SHARED_REACT__: typeof React }
+    ).__SHARED_REACT__ = React
+    ;(
+        window as unknown as { __SHARED_REACT_DOM__: typeof ReactDOM }
+    ).__SHARED_REACT_DOM__ = ReactDOM
+}
 
 // 첫 접속 타이밍에 optimizeDeps가 갱신되면 504(Outdated Optimize Dep)로 깨질 수 있어,
 // "완료 신호(= optimizeDeps 안정화)"를 확인한 뒤 자동으로 재시도/새로고침해서 복구합니다.
@@ -152,7 +163,7 @@ if (import.meta.env.DEV) {
     setupViteFirstLoadRecovery()
 }
 
-createRoot(document.getElementById('root')!).render(
+ReactDOM.createRoot(document.getElementById('root')!).render(
     <Provider store={store}>
         <App />
     </Provider>,

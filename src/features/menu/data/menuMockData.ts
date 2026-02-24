@@ -3,7 +3,10 @@ import type { FinalMenuTree } from '../types/finalMenuTypes'
 /**
  * 메뉴 Mock 데이터
  * - type: GROUP | LEAF
- * - url: LEAF 전용 (내부: actionCode, 외부: 전체 URL)
+ * - url: LEAF 전용
+ *   - 모달 모듈: '{remoteName}/{path}' (예: measurement/planar-distance) → remotes name으로 해당 remote(12001 등) 매핑, path는 kebab→Pascal로 MF 로드
+ *   - 외부: http(s)로 시작하는 전체 URL
+ *   - 기타 내부: actionCode
  */
 export const MOCK_MENU_DATA: FinalMenuTree = [
     {
@@ -19,7 +22,7 @@ export const MOCK_MENU_DATA: FinalMenuTree = [
                     {
                         name: '평면거리',
                         type: 'LEAF',
-                        url: 'planar-distance',
+                        url: 'measurement/planar-distance',
                     },
                     {
                         name: '공간거리',
