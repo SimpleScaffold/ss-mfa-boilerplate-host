@@ -100,7 +100,7 @@ export default defineConfig(async ({ command }) => {
                 ],
             }),
             federation({
-                name: 'hostapp1',
+                name: 'host',
                 remotes,
                 shared,
                 dts: false,
