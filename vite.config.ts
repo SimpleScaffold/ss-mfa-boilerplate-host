@@ -32,6 +32,7 @@ const REMOTE_EXPOSE_PATHS: RemoteExposePaths = {
     measurement: {
         Measurement: '/measurement',
         PlanarDistance: '/planar-distance',
+        SpatialDistance: '/spatial-distance',
     },
 }
 

@@ -27,7 +27,7 @@ export const MOCK_MENU_DATA: FinalMenuTree = [
                     {
                         name: '공간거리',
                         type: 'LEAF',
-                        url: '12',
+                        url: 'measurement/spatial-distance',
                     },
                     {
                         name: '수직거리',
