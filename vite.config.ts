@@ -1,7 +1,7 @@
 import react from '@vitejs/plugin-react-swc'
 import tailwindcss from '@tailwindcss/vite'
 import { federation } from '@module-federation/vite'
-import { defineConfig } from 'vite'
+import { defineConfig, type UserConfig } from 'vite'
 import { viteStaticCopy } from 'vite-plugin-static-copy'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -35,7 +35,7 @@ const REMOTE_EXPOSE_PATHS: RemoteExposePaths = {
     },
 }
 
-export default defineConfig(async ({ command }) => {
+export default defineConfig(async ({ command }): Promise<UserConfig> => {
     const envMode = (process.env.MF_ENV || ENV_MODE.LOCAL) as EnvMode
     const hostConfig = await getHostConfig(envMode)
     if (!hostConfig?.url) {
@@ -167,5 +167,5 @@ export default defineConfig(async ({ command }) => {
             minify: 'esbuild',
             sourcemap: false,
         },
-    }
+    } as UserConfig
 })
