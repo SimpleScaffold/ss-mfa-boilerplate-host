@@ -1,6 +1,6 @@
 import react from '@vitejs/plugin-react-swc'
 import tailwindcss from '@tailwindcss/vite'
-import federation from '@originjs/vite-plugin-federation'
+import { federation } from '@module-federation/vite'
 import { defineConfig } from 'vite'
 import { viteStaticCopy } from 'vite-plugin-static-copy'
 import path from 'node:path'
@@ -55,25 +55,30 @@ export default defineConfig(async ({ command }) => {
         remoteNames,
     )
     const isDev = command === 'serve' && envMode === ENV_MODE.LOCAL
-
-    const remotesForMf = remoteConfigs
-        .filter(
-            (r) =>
-                r.name &&
-                r.url &&
-                Object.prototype.hasOwnProperty.call(
-                    REMOTE_EXPOSE_PATHS,
-                    r.name,
-                ),
+    const remoteEntryPath = isDev ? '/remoteEntry.js' : '/assets/remoteEntry.js'
+    const remotes: Record<
+        string,
+        { type: 'module'; name: string; entry: string }
+    > = {}
+    for (const r of remoteConfigs) {
+        if (
+            !r.name ||
+            !r.url ||
+            !Object.prototype.hasOwnProperty.call(REMOTE_EXPOSE_PATHS, r.name)
         )
-        .map((r) => {
-            const base = (r.url ?? '').replace(/\/$/, '')
-            return [r.name, `${base}/assets/remoteEntry.js`] as const
-        })
-    const remotes = Object.fromEntries(remotesForMf)
-    const shared = isDev
-        ? []
-        : { react: { singleton: true }, 'react-dom': { singleton: true } }
+            continue
+        const base = (r.url ?? '').replace(/\/$/, '')
+        const entry = `${base}${remoteEntryPath}`
+        remotes[r.name] = {
+            type: 'module',
+            name: r.name,
+            entry,
+        }
+    }
+    const shared = {
+        react: { singleton: true },
+        'react-dom': { singleton: true },
+    }
 
     return {
         plugins: [
@@ -82,7 +87,6 @@ export default defineConfig(async ({ command }) => {
                 remoteExposePaths: REMOTE_EXPOSE_PATHS,
                 remotes: remoteConfigs,
                 modalModulePaths,
-                isDev,
             }),
             react(),
             tailwindcss(),
@@ -99,6 +103,7 @@ export default defineConfig(async ({ command }) => {
                 name: 'hostapp1',
                 remotes,
                 shared,
+                dts: false,
             }),
         ],
         define: {
