@@ -1,29 +1,14 @@
 import { RouterProvider } from 'react-router'
+import { Bounce, ToastContainer } from 'react-toastify'
+
 import router from 'src/globals/router/router.tsx'
 import useRouteListener from 'src/globals/router/useRouteListener.tsx'
-import { Bounce, ToastContainer } from 'react-toastify'
 import { ThemeProvider } from 'src/globals/theme/theme-provider.tsx'
-import { useEffect } from 'react'
+import { usePreloadCleanup } from 'src/globals/theme/usePreloadCleanup.tsx'
 
 function App() {
     useRouteListener()
-
-    // 새로 고침시 애니메이션, 임시 배경색상 처리
-    useEffect(() => {
-        requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-                const root = document.documentElement
-                const computedBg =
-                    getComputedStyle(root).getPropertyValue('--background')
-
-                if (computedBg?.trim()) {
-                    root.style.backgroundColor = ''
-                    document.body.classList.remove('preload')
-                    document.documentElement.classList.remove('theme-instant')
-                }
-            })
-        })
-    }, [])
+    usePreloadCleanup()
 
     return (
         <ThemeProvider>
