@@ -7,7 +7,7 @@
  * - 모달 모듈(평면거리 등) 클릭 시 DSmodal로 마이크로프론트 로드
  */
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Outlet } from 'react-router'
 import { shallowEqual, useDispatch } from 'react-redux'
@@ -127,7 +127,7 @@ type OpenModalItem = {
     id: string
     /** Host에서 모달 초기 위치 제어. 없으면 (0,0) */
     initialPosition?: { x: number; y: number }
-    /** Remote 컴포넌트에 전달할 props (variant 등) */
+    /** Remote 컴포넌트에 전달할 props (id 등 분기용) */
     modalProps?: Record<string, unknown>
 } & ModalModuleInfo
 
@@ -261,6 +261,23 @@ function MenuModal({
     const ctx = useModalConstraint()
     const constraintRef = ctx?.constraintRef
 
+    // 참조 안정화: 새 모달이 열릴 때 부모 리렌더로 인해 fallback/errorFallback이
+    // 매번 새로 생성되면 RemoteAppLoader의 useMemo가 무효화되어 기존 열린 모달들까지
+    // 리로드되는 문제를 방지합니다.
+    const fallback = useMemo(
+        () => (
+            <ModalLoadingFallback
+                displayName={modalItem.displayName}
+                remoteName={modalItem.remoteName}
+            />
+        ),
+        [modalItem.displayName, modalItem.remoteName],
+    )
+    const errorFallback = useMemo(
+        () => <ModalErrorFallback remoteName={modalItem.remoteName} />,
+        [modalItem.remoteName],
+    )
+
     const modalElement = (
         <DSmodal open={open} onOpenChange={onOpenChange}>
             <DSmodalContent
@@ -281,17 +298,8 @@ function MenuModal({
                             modulePath: modalItem.modulePath,
                         }}
                         props={modalItem.modalProps}
-                        fallback={
-                            <ModalLoadingFallback
-                                displayName={modalItem.displayName}
-                                remoteName={modalItem.remoteName}
-                            />
-                        }
-                        errorFallback={
-                            <ModalErrorFallback
-                                remoteName={modalItem.remoteName}
-                            />
-                        }
+                        fallback={fallback}
+                        errorFallback={errorFallback}
                     />
                 </DSmodalBody>
             </DSmodalContent>
