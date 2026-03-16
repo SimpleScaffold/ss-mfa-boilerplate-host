@@ -21,6 +21,7 @@ import {
     DSmodalBody,
 } from '@repo/fe-ui/dsmodal'
 import { getRemoteConfigByNameSync } from 'config'
+import { loadRemoteModule } from 'virtual:mf-remote-imports'
 import { menuAction } from 'src/features/menu/menuReducer'
 import { RemoteAppLoader } from 'src/remotes/RemoteAppLoader'
 import { useAppSelector } from '../store/redux/reduxHooks'
@@ -79,17 +80,6 @@ function parseModalUrl(url: string): ModalModuleInfo | null {
     }
 }
 
-/** 공간거리 측정: 동일 모듈로 창 2개 열기용 표시 이름 및 초기 위치(px) */
-const SPATIAL_DISTANCE_MULTI_MODAL_OPTIONS = [
-    { displayName: '공간거리 측정 기능1', initialPosition: { x: 0, y: 0 } },
-    {
-        displayName: '공간거리 측정 기능2',
-        initialPosition: { x: 24, y: 80 },
-    },
-] as const
-
-const SPATIAL_DISTANCE_URL = 'measurement/spatial-distance'
-
 /** 모달 내 원격 앱 로딩 중 폴백. 10초 후 원격 앱 실행 안내 표시 */
 function ModalLoadingFallback({
     displayName,
@@ -137,6 +127,8 @@ type OpenModalItem = {
     id: string
     /** Host에서 모달 초기 위치 제어. 없으면 (0,0) */
     initialPosition?: { x: number; y: number }
+    /** Remote 컴포넌트에 전달할 props (variant 등) */
+    modalProps?: Record<string, unknown>
 } & ModalModuleInfo
 
 const MenuLayout = () => {
@@ -148,24 +140,58 @@ const MenuLayout = () => {
         // '{remoteName}/{path}' → remotes name 매칭, modalExposes 있으면 모달로 MF 로드
         const moduleInfo = parseModalUrl(url)
         if (moduleInfo) {
-            const normalizedUrl = url.replace(/^#?\/*|\/*$/g, '')
-            if (normalizedUrl === SPATIAL_DISTANCE_URL) {
-                // 공간거리: 동일 모듈로 창 2개 (기능1, 기능2), 위치를 달리해 겹치지 않게
-                setOpenModals((prev) => [
-                    ...prev,
-                    ...SPATIAL_DISTANCE_MULTI_MODAL_OPTIONS.map((opt, i) => ({
-                        id: `spatial-${Date.now()}-${i}`,
-                        ...moduleInfo,
-                        displayName: opt.displayName,
-                        initialPosition: opt.initialPosition,
-                    })),
-                ])
-            } else {
+            const normalized = url.replace(/^#?\/*|\/*$/g, '')
+            const parts = normalized.split('/').filter(Boolean)
+            const remoteName = parts[0]
+            const path = parts.slice(1).join('/')
+            const expansionPath = `${remoteName}/ModalExpansions`
+
+            const openSingleModal = () =>
                 setOpenModals((prev) => [
                     ...prev,
                     { id: `modal-${Date.now()}`, ...moduleInfo },
                 ])
-            }
+
+            // Remote에 ModalExpansions가 있으면 getModalEntries로 열 개수/설정 조회
+            loadRemoteModule(expansionPath)
+                .then((mod: unknown) => {
+                    const m = mod as {
+                        getModalEntries?: (
+                            r: string,
+                            p: string,
+                        ) => Array<{
+                            url: string
+                            displayName: string
+                            initialPosition?: { x: number; y: number }
+                            props?: Record<string, unknown>
+                        }> | null
+                    }
+                    const entries =
+                        typeof m?.getModalEntries === 'function'
+                            ? m.getModalEntries(remoteName, path)
+                            : null
+                    if (entries && entries.length > 0) {
+                        setOpenModals((prev) => [
+                            ...prev,
+                            ...entries.flatMap((opt, i) => {
+                                const info = parseModalUrl(opt.url)
+                                if (!info) return []
+                                return [
+                                    {
+                                        id: `modal-${Date.now()}-${i}`,
+                                        ...info,
+                                        displayName: opt.displayName,
+                                        initialPosition: opt.initialPosition,
+                                        modalProps: opt.props,
+                                    },
+                                ]
+                            }),
+                        ])
+                    } else {
+                        openSingleModal()
+                    }
+                })
+                .catch(() => openSingleModal())
             return
         }
         if (isExternalUrl(url)) {
@@ -254,6 +280,7 @@ function MenuModal({
                             name: modalItem.displayName,
                             modulePath: modalItem.modulePath,
                         }}
+                        props={modalItem.modalProps}
                         fallback={
                             <ModalLoadingFallback
                                 displayName={modalItem.displayName}

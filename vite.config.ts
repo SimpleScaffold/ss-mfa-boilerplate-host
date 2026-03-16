@@ -9,6 +9,7 @@ import {
     getHostConfig,
     getRemoteConfigs,
     getModalModulePathsFromMenu,
+    getModalExpansionModulePaths,
     getRemoteExposePathsFromMenu,
     REMOTE_MAIN_EXPOSES,
     ENV_MODE,
@@ -53,6 +54,7 @@ export default defineConfig(async ({ command }): Promise<UserConfig> => {
         MOCK_MENU_DATA,
         remoteNames,
     )
+    const modalExpansionModulePaths = getModalExpansionModulePaths(remoteNames)
     const isDev = command === 'serve' && envMode === ENV_MODE.LOCAL
     const remoteEntryPath = isDev ? '/remoteEntry.js' : '/assets/remoteEntry.js'
     const remotes: Record<
@@ -86,6 +88,7 @@ export default defineConfig(async ({ command }): Promise<UserConfig> => {
                 remoteExposePaths,
                 remotes: remoteConfigs,
                 modalModulePaths,
+                modalExpansionModulePaths,
             }),
             react(),
             tailwindcss(),
