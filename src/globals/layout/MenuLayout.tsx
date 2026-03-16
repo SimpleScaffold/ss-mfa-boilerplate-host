@@ -230,7 +230,7 @@ function MenuModal({
 }: {
     open: boolean
     onOpenChange: (open: boolean) => void
-    modalItem: OpenModalItem | null
+    modalItem: OpenModalItem
 }) {
     const ctx = useModalConstraint()
     const constraintRef = ctx?.constraintRef
@@ -244,30 +244,28 @@ function MenuModal({
                 initialPosition={modalItem.initialPosition}
             >
                 <DSmodalHeader>
-                    <DSmodalTitle>{modalItem?.displayName ?? ''}</DSmodalTitle>
+                    <DSmodalTitle>{modalItem.displayName}</DSmodalTitle>
                     <DSmodalClose />
                 </DSmodalHeader>
                 <DSmodalBody>
-                    {modalItem ? (
-                        <RemoteAppLoader
-                            config={{
-                                id: modalItem.id,
-                                name: modalItem.displayName,
-                                modulePath: modalItem.modulePath,
-                            }}
-                            fallback={
-                                <ModalLoadingFallback
-                                    displayName={modalItem.displayName}
-                                    remoteName={modalItem.remoteName}
-                                />
-                            }
-                            errorFallback={
-                                <ModalErrorFallback
-                                    remoteName={modalItem.remoteName}
-                                />
-                            }
-                        />
-                    ) : null}
+                    <RemoteAppLoader
+                        config={{
+                            id: modalItem.id,
+                            name: modalItem.displayName,
+                            modulePath: modalItem.modulePath,
+                        }}
+                        fallback={
+                            <ModalLoadingFallback
+                                displayName={modalItem.displayName}
+                                remoteName={modalItem.remoteName}
+                            />
+                        }
+                        errorFallback={
+                            <ModalErrorFallback
+                                remoteName={modalItem.remoteName}
+                            />
+                        }
+                    />
                 </DSmodalBody>
             </DSmodalContent>
         </DSmodal>
