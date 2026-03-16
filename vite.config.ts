@@ -55,8 +55,9 @@ export default defineConfig(async ({ command }): Promise<UserConfig> => {
         remoteNames,
     )
     const modalExpansionModulePaths = getModalExpansionModulePaths(remoteNames)
-    const isDev = command === 'serve' && envMode === ENV_MODE.LOCAL
-    const remoteEntryPath = isDev ? '/remoteEntry.js' : '/assets/remoteEntry.js'
+    // @module-federation/vite는 remoteEntry.js를 dist 루트에 출력함.
+    // dev: Vite serve가 /remoteEntry.js 서빙. preview/build: dist/remoteEntry.js → /remoteEntry.js
+    const remoteEntryPath = '/remoteEntry.js'
     const remotes: Record<
         string,
         { type: 'module'; name: string; entry: string }
