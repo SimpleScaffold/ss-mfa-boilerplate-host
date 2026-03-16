@@ -43,18 +43,20 @@ function kebabToPascal(kebab: string): string {
         .join('')
 }
 
+export type ModalModuleInfo = {
+    remoteName: string
+    path: string
+    displayName: string
+    modulePath: string
+}
+
 /**
  * 메뉴 url '{remoteName}/{path}' (예: measurement/planar-distance) 해석.
  * - remoteName을 config remotes에서 조회 → base URL (예: http://localhost:12001) 매핑
  * - 그 remote의 {baseUrl}/{path} = http://localhost:12001/planar-distance 에 해당하는 화면을
  *   모듈 페더레이션으로 로드해 보여줌 (path는 kebab→Pascal로 MF expose 경로로 변환).
  */
-function parseModalUrl(url: string): {
-    remoteName: string
-    path: string
-    displayName: string
-    modulePath: string
-} | null {
+function parseModalUrl(url: string): ModalModuleInfo | null {
     const normalized = url?.replace(/^#?\/*|\/*$/g, '') || url
     const parts = normalized.split('/').filter(Boolean)
     if (parts.length < 2) return null
@@ -76,6 +78,17 @@ function parseModalUrl(url: string): {
         modulePath,
     }
 }
+
+/** 공간거리 측정: 동일 모듈로 창 2개 열기용 표시 이름 및 초기 위치(px) */
+const SPATIAL_DISTANCE_MULTI_MODAL_OPTIONS = [
+    { displayName: '공간거리 측정 기능1', initialPosition: { x: 0, y: 0 } },
+    {
+        displayName: '공간거리 측정 기능2',
+        initialPosition: { x: 24, y: 80 },
+    },
+] as const
+
+const SPATIAL_DISTANCE_URL = 'measurement/spatial-distance'
 
 /** 모달 내 원격 앱 로딩 중 폴백. 10초 후 원격 앱 실행 안내 표시 */
 function ModalLoadingFallback({
@@ -120,23 +133,39 @@ function ModalErrorFallback({ remoteName }: { remoteName: string }) {
     )
 }
 
+type OpenModalItem = {
+    id: string
+    /** Host에서 모달 초기 위치 제어. 없으면 (0,0) */
+    initialPosition?: { x: number; y: number }
+} & ModalModuleInfo
+
 const MenuLayout = () => {
     const dispatch = useDispatch()
 
-    const [modalOpen, setModalOpen] = useState(false)
-    const [modalModule, setModalModule] = useState<{
-        remoteName: string
-        path: string
-        displayName: string
-        modulePath: string
-    } | null>(null)
+    const [openModals, setOpenModals] = useState<OpenModalItem[]>([])
 
     const handleInternalAction = useCallback((url: string) => {
         // '{remoteName}/{path}' → remotes name 매칭, modalExposes 있으면 모달로 MF 로드
         const moduleInfo = parseModalUrl(url)
         if (moduleInfo) {
-            setModalModule(moduleInfo)
-            setModalOpen(true)
+            const normalizedUrl = url.replace(/^#?\/*|\/*$/g, '')
+            if (normalizedUrl === SPATIAL_DISTANCE_URL) {
+                // 공간거리: 동일 모듈로 창 2개 (기능1, 기능2), 위치를 달리해 겹치지 않게
+                setOpenModals((prev) => [
+                    ...prev,
+                    ...SPATIAL_DISTANCE_MULTI_MODAL_OPTIONS.map((opt, i) => ({
+                        id: `spatial-${Date.now()}-${i}`,
+                        ...moduleInfo,
+                        displayName: opt.displayName,
+                        initialPosition: opt.initialPosition,
+                    })),
+                ])
+            } else {
+                setOpenModals((prev) => [
+                    ...prev,
+                    { id: `modal-${Date.now()}`, ...moduleInfo },
+                ])
+            }
             return
         }
         if (isExternalUrl(url)) {
@@ -176,11 +205,20 @@ const MenuLayout = () => {
                 <Outlet />
             </DSsideMenu>
 
-            <MenuModal
-                open={modalOpen}
-                onOpenChange={setModalOpen}
-                modalModule={modalModule}
-            />
+            {openModals.map((item) => (
+                <MenuModal
+                    key={item.id}
+                    open={true}
+                    onOpenChange={(open) => {
+                        if (!open) {
+                            setOpenModals((prev) =>
+                                prev.filter((m) => m.id !== item.id),
+                            )
+                        }
+                    }}
+                    modalItem={item}
+                />
+            ))}
         </ModalConstraintProvider>
     )
 }
@@ -188,16 +226,11 @@ const MenuLayout = () => {
 function MenuModal({
     open,
     onOpenChange,
-    modalModule,
+    modalItem,
 }: {
     open: boolean
     onOpenChange: (open: boolean) => void
-    modalModule: {
-        remoteName: string
-        path: string
-        displayName: string
-        modulePath: string
-    } | null
+    modalItem: OpenModalItem | null
 }) {
     const ctx = useModalConstraint()
     const constraintRef = ctx?.constraintRef
@@ -208,33 +241,29 @@ function MenuModal({
                 className="min-h-[320px] min-w-[480px]"
                 constraintRef={constraintRef ?? undefined}
                 showOverlay={!constraintRef}
+                initialPosition={modalItem.initialPosition}
             >
                 <DSmodalHeader>
-                    <DSmodalTitle>
-                        {modalModule?.displayName ?? ''}
-                    </DSmodalTitle>
+                    <DSmodalTitle>{modalItem?.displayName ?? ''}</DSmodalTitle>
                     <DSmodalClose />
                 </DSmodalHeader>
                 <DSmodalBody>
-                    {modalModule ? (
+                    {modalItem ? (
                         <RemoteAppLoader
                             config={{
-                                id:
-                                    modalModule.remoteName +
-                                    '-' +
-                                    modalModule.path,
-                                name: modalModule.displayName,
-                                modulePath: modalModule.modulePath,
+                                id: modalItem.id,
+                                name: modalItem.displayName,
+                                modulePath: modalItem.modulePath,
                             }}
                             fallback={
                                 <ModalLoadingFallback
-                                    displayName={modalModule.displayName}
-                                    remoteName={modalModule.remoteName}
+                                    displayName={modalItem.displayName}
+                                    remoteName={modalItem.remoteName}
                                 />
                             }
                             errorFallback={
                                 <ModalErrorFallback
-                                    remoteName={modalModule.remoteName}
+                                    remoteName={modalItem.remoteName}
                                 />
                             }
                         />

@@ -9,6 +9,8 @@ import {
     getHostConfig,
     getRemoteConfigs,
     getModalModulePathsFromMenu,
+    getRemoteExposePathsFromMenu,
+    REMOTE_MAIN_EXPOSES,
     ENV_MODE,
     type EnvMode,
 } from '../../../../config'
@@ -21,20 +23,11 @@ import {
     feUiResolvePlugin,
     mfVirtualRemotesPlugin,
     type RemoteEntry,
-    type RemoteExposePaths,
 } from '../../../../config/vite'
 import { MOCK_MENU_DATA } from './src/features/menu/data/menuMockData'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const repoRoot = path.resolve(__dirname, '../../../../')
-
-const REMOTE_EXPOSE_PATHS: RemoteExposePaths = {
-    measurement: {
-        Measurement: '/measurement',
-        PlanarDistance: '/planar-distance',
-        SpatialDistance: '/spatial-distance',
-    },
-}
 
 export default defineConfig(async ({ command }): Promise<UserConfig> => {
     const envMode = (process.env.MF_ENV || ENV_MODE.LOCAL) as EnvMode
@@ -51,6 +44,11 @@ export default defineConfig(async ({ command }): Promise<UserConfig> => {
     const remoteNames = new Set(
         remoteConfigs.map((r) => r.name).filter((n): n is string => Boolean(n)),
     )
+    const remoteExposePaths = getRemoteExposePathsFromMenu(
+        MOCK_MENU_DATA,
+        remoteNames,
+        REMOTE_MAIN_EXPOSES,
+    )
     const modalModulePaths = getModalModulePathsFromMenu(
         MOCK_MENU_DATA,
         remoteNames,
@@ -65,7 +63,7 @@ export default defineConfig(async ({ command }): Promise<UserConfig> => {
         if (
             !r.name ||
             !r.url ||
-            !Object.prototype.hasOwnProperty.call(REMOTE_EXPOSE_PATHS, r.name)
+            !Object.prototype.hasOwnProperty.call(remoteExposePaths, r.name)
         )
             continue
         const base = (r.url ?? '').replace(/\/$/, '')
@@ -85,7 +83,7 @@ export default defineConfig(async ({ command }): Promise<UserConfig> => {
         plugins: [
             feUiResolvePlugin(),
             mfVirtualRemotesPlugin({
-                remoteExposePaths: REMOTE_EXPOSE_PATHS,
+                remoteExposePaths,
                 remotes: remoteConfigs,
                 modalModulePaths,
             }),
