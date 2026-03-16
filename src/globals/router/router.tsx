@@ -1,3 +1,5 @@
+/// <reference types="vite/client" />
+
 import { createBrowserRouter, RouteObject } from 'react-router'
 import HomePage from 'src/pages/HomePage'
 import React, { Suspense, lazy } from 'react'
