@@ -127,6 +127,8 @@ type OpenModalItem = {
     id: string
     /** Host에서 모달 초기 위치 제어. 없으면 (0,0) */
     initialPosition?: { x: number; y: number }
+    /** Host에서 모달 초기 크기 제어. px 단위. 없으면 기본값(420x360) */
+    initialSize?: { width: number; height: number }
     /** Remote 컴포넌트에 전달할 props (id 등 분기용) */
     modalProps?: Record<string, unknown>
 } & ModalModuleInfo
@@ -163,6 +165,7 @@ const MenuLayout = () => {
                             url: string
                             displayName: string
                             initialPosition?: { x: number; y: number }
+                            initialSize?: { width: number; height: number }
                             props?: Record<string, unknown>
                         }> | null
                     }
@@ -182,6 +185,7 @@ const MenuLayout = () => {
                                         ...info,
                                         displayName: opt.displayName,
                                         initialPosition: opt.initialPosition,
+                                        initialSize: opt.initialSize,
                                         modalProps: opt.props,
                                     },
                                 ]
@@ -285,6 +289,7 @@ function MenuModal({
                 constraintRef={constraintRef ?? undefined}
                 showOverlay={!constraintRef}
                 initialPosition={modalItem.initialPosition}
+                initialSize={modalItem.initialSize}
             >
                 <DSmodalHeader>
                     <DSmodalTitle>{modalItem.displayName}</DSmodalTitle>
