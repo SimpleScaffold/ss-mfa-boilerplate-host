@@ -80,6 +80,7 @@ export default defineConfig(async ({ command }): Promise<UserConfig> => {
     const shared = {
         react: { singleton: true },
         'react-dom': { singleton: true },
+        '@repo/mf-modal-protocol': { singleton: true },
     }
 
     return {
@@ -114,6 +115,20 @@ export default defineConfig(async ({ command }): Promise<UserConfig> => {
         },
         resolve: {
             alias: [
+                {
+                    find: '@repo/cesium-viewer-store',
+                    replacement: path.resolve(
+                        repoRoot,
+                        'packages/fe/cesium-viewer-store/src/index.ts',
+                    ),
+                },
+                {
+                    find: '@repo/mf-modal-protocol',
+                    replacement: path.resolve(
+                        repoRoot,
+                        'packages/fe/mf-modal-protocol/src/index.ts',
+                    ),
+                },
                 {
                     find: 'config',
                     replacement: path.resolve(__dirname, '../../../../config'),

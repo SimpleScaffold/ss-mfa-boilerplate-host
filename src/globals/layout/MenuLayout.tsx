@@ -28,6 +28,10 @@ import { useAppSelector } from '../store/redux/reduxHooks'
 import type { FinalMenuTree } from 'src/features/menu/types/finalMenuTypes'
 import { convertToFinalMenu } from 'src/features/menu/utils/converter'
 import {
+    PlanarDistanceBridgeProvider,
+    usePlanarDistanceBridgeApi,
+} from '@repo/mf-modal-protocol'
+import {
     ModalConstraintProvider,
     useModalConstraint,
 } from './ModalConstraintContext'
@@ -227,28 +231,30 @@ const MenuLayout = () => {
 
     return (
         <ModalConstraintProvider>
-            <DSsideMenu
-                menu={finalMenu}
-                baseMenuLoading={baseMenuLoading}
-                onInternalAction={handleInternalAction}
-            >
-                <Outlet />
-            </DSsideMenu>
+            <PlanarDistanceBridgeProvider>
+                <DSsideMenu
+                    menu={finalMenu}
+                    baseMenuLoading={baseMenuLoading}
+                    onInternalAction={handleInternalAction}
+                >
+                    <Outlet />
+                </DSsideMenu>
 
-            {openModals.map((item) => (
-                <MenuModal
-                    key={item.id}
-                    open={true}
-                    onOpenChange={(open) => {
-                        if (!open) {
-                            setOpenModals((prev) =>
-                                prev.filter((m) => m.id !== item.id),
-                            )
-                        }
-                    }}
-                    modalItem={item}
-                />
-            ))}
+                {openModals.map((item) => (
+                    <MenuModal
+                        key={item.id}
+                        open={true}
+                        onOpenChange={(open) => {
+                            if (!open) {
+                                setOpenModals((prev) =>
+                                    prev.filter((m) => m.id !== item.id),
+                                )
+                            }
+                        }}
+                        modalItem={item}
+                    />
+                ))}
+            </PlanarDistanceBridgeProvider>
         </ModalConstraintProvider>
     )
 }
@@ -264,6 +270,14 @@ function MenuModal({
 }) {
     const ctx = useModalConstraint()
     const constraintRef = ctx?.constraintRef
+    const planarBridge = usePlanarDistanceBridgeApi()
+
+    /** `planarBridge` 병합 — `doc/kr/planar-distance-microfrontend.md` */
+    const remoteProps = useMemo(() => {
+        const base = modalItem.modalProps ?? {}
+        if (!planarBridge) return base
+        return { ...base, planarBridge }
+    }, [modalItem.modalProps, planarBridge])
 
     // 참조 안정화: 새 모달이 열릴 때 부모 리렌더로 인해 fallback/errorFallback이
     // 매번 새로 생성되면 RemoteAppLoader의 useMemo가 무효화되어 기존 열린 모달들까지
@@ -302,7 +316,7 @@ function MenuModal({
                             name: modalItem.displayName,
                             modulePath: modalItem.modulePath,
                         }}
-                        props={modalItem.modalProps}
+                        props={remoteProps}
                         fallback={fallback}
                         errorFallback={errorFallback}
                     />
