@@ -116,13 +116,6 @@ export default defineConfig(async ({ command }): Promise<UserConfig> => {
         resolve: {
             alias: [
                 {
-                    find: '@repo/cesium-viewer-store',
-                    replacement: path.resolve(
-                        repoRoot,
-                        'packages/fe/cesium-viewer-store/src/index.ts',
-                    ),
-                },
-                {
                     find: '@repo/mf-modal-protocol',
                     replacement: path.resolve(
                         repoRoot,
@@ -131,7 +124,7 @@ export default defineConfig(async ({ command }): Promise<UserConfig> => {
                 },
                 {
                     find: 'config',
-                    replacement: path.resolve(__dirname, '../../../../config'),
+                    replacement: path.resolve(repoRoot, 'config'),
                 },
                 {
                     find: /^@\//,

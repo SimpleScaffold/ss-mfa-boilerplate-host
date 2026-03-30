@@ -14,7 +14,6 @@
     },
     "dependencies": {
         "@reduxjs/toolkit": "^2.6.1",
-        "@repo/cesium-viewer-store": "workspace:*",
         "@repo/fe-ui": "workspace:*",
         "@repo/fe-utils": "workspace:*",
         "@repo/mf-modal-protocol": "workspace:*",

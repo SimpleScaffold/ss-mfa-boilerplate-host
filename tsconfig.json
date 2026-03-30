@@ -2,12 +2,11 @@
     "extends": "../../../../tsconfig.base.json",
     "compilerOptions": {
         "outDir": "./dist",
-        "baseUrl": ".",
+        "baseUrl": "../../../../",
         "jsx": "react-jsx",
         "paths": {
-            "src/*": ["./src/*"],
-            "config": ["../../../../config/index"],
-            "@repo/fe-ui/*": ["../../../../packages/fe/ui/src/exports/*"]
+            "src/*": ["./apps/fe/host/host/src/*"],
+            "config": ["./config/index"]
         },
         "moduleResolution": "bundler",
         "allowImportingTsExtensions": true,
