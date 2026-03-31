@@ -23,7 +23,7 @@ import {
 import { getRemoteConfigByNameSync } from 'config'
 import { loadRemoteModule } from 'virtual:mf-remote-imports'
 import { menuAction } from 'src/features/menu/menuReducer'
-import { RemoteAppLoader } from 'src/remotes/RemoteAppLoader'
+import { RemoteAppLoader } from 'src/globals/remotes/RemoteAppLoader'
 import { useAppSelector } from '../store/redux/reduxHooks'
 import type { FinalMenuTree } from 'src/features/menu/types/finalMenuTypes'
 import { convertToFinalMenu } from 'src/features/menu/utils/converter'

@@ -81,6 +81,7 @@ export default defineConfig(async ({ command }): Promise<UserConfig> => {
         react: { singleton: true },
         'react-dom': { singleton: true },
         '@repo/mf-modal-protocol': { singleton: true },
+        cesium: { singleton: true },
     }
 
     return {
