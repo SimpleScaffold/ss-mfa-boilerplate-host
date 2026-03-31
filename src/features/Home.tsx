@@ -2,7 +2,7 @@ import { MapScene } from 'src/globals/cesium/ui/MapScene'
 
 const Home = () => {
     return (
-        <div className="flex h-full w-full bg-blue-500">
+        <div className="bg-background flex h-full w-full">
             <div className="flex min-h-0 w-full flex-1 flex-col overflow-hidden">
                 <MapScene />
             </div>
