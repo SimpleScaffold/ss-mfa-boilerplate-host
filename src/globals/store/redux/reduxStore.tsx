@@ -4,7 +4,7 @@ import { all } from 'redux-saga/effects'
 import { routerSaga, routerSlice } from 'src/globals/router/routerReducer.tsx'
 import { sampleSaga, sampleSlice } from 'src/features/sample/sampleReducer.ts'
 import { themeSlice } from 'src/globals/theme/themeReducer.tsx'
-import { cesiumSaga, cesiumSlice } from 'src/globals/cesium/cesiumReducer'
+import { cesiumSaga, cesiumSlice } from 'src/globals/cesium/store/cesiumReducer'
 import { menuSaga, menuSlice } from 'src/features/menu/menuReducer.ts'
 
 const reducers = {
