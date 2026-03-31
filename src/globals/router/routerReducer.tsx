@@ -1,4 +1,4 @@
-import { reduxMaker } from 'src/globals/store/redux/reduxUtils.ts'
+import { reduxMaker } from 'src/globals/store/redux/reduxUtils'
 import { PayloadAction } from '@reduxjs/toolkit'
 
 const prefix = 'router'

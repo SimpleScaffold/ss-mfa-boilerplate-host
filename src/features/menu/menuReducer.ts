@@ -1,4 +1,4 @@
-import { AsyncRequest, reduxMaker } from 'src/globals/store/redux/reduxUtils.ts'
+import { AsyncRequest, reduxMaker } from 'src/globals/store/redux/reduxUtils'
 import { getBaseMenu } from './menuAPI'
 import type { FinalMenuTree } from './types/finalMenuTypes'
 
