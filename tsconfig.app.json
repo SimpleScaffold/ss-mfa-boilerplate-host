@@ -9,6 +9,9 @@
             "@repo/fe-utils": ["../../../../packages/fe/utils/src"],
             "measurement/MapToolBridge": [
                 "../../../../apps/fe/remote/measurement/src/features/planar-distance/mapToolBridgePublic.ts"
+            ],
+            "measurement/RemoteMapToolEffects": [
+                "../../../../apps/fe/remote/measurement/src/features/planar-distance/remoteMapToolEffectsEntry.ts"
             ]
         },
         "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",

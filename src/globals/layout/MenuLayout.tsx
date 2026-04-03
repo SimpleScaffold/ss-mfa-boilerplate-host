@@ -30,7 +30,7 @@ import { convertToFinalMenu } from 'src/features/menu/utils/converter'
 import {
     MapToolBridgeProvider,
     useMapToolBridgeApi,
-} from 'src/globals/mfModalProtocol'
+} from 'measurement/MapToolBridge'
 import {
     ModalConstraintProvider,
     useModalConstraint,
