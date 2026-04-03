@@ -29,6 +29,7 @@ import {
     hostFederationShared,
     mfVirtualRemotesPlugin,
 } from './vite'
+import { devServerProxy } from './vite/proxy'
 import { MOCK_MENU_DATA } from './src/features/menu/data/menuMockData'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -120,6 +121,7 @@ export default defineConfig(async (): Promise<UserConfig> => {
             cors: true,
             hmr: { port, host },
             fs: { allow: [repoRoot] },
+            proxy: devServerProxy,
         },
         preview: {
             host,
