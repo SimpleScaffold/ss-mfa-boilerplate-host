@@ -1,6 +1,7 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import tailwindcss from '@tailwindcss/vite'
+import tsconfigPaths from 'vite-tsconfig-paths'
 import { federation } from '@module-federation/vite'
 import react from '@vitejs/plugin-react-swc'
 import { defineConfig, type UserConfig } from 'vite'
@@ -69,6 +70,9 @@ export default defineConfig(async (): Promise<UserConfig> => {
 
     return {
         plugins: [
+            tsconfigPaths({
+                projects: [path.join(__dirname, 'tsconfig.json')],
+            }),
             feUiResolvePlugin(),
             mfVirtualRemotesPlugin({
                 remoteExposePaths,

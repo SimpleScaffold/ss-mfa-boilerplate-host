@@ -1,7 +1,7 @@
 export {
     extractHostFromUrl,
     getPortFromUrl,
-} from '../../../../../packages/fe/vite-config/src/url'
+} from '../../../../../packages/fe/vite-config/url'
 export { buildFederationRemotes, hostFederationShared } from './federationHost'
 export {
     cesiumBaseUrl,

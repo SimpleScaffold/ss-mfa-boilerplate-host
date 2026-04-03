@@ -5,8 +5,12 @@
             "*": ["./*"],
             "src/*": ["./src/*"],
             "@repo/fe-ui/*": ["../../../../packages/fe/ui/src/exports/*"],
+            "@repo/fe-ui/styles": [
+                "../../../../packages/fe/ui/src/styles/index.css"
+            ],
+            "@repo/fe-ui/styles/*": ["../../../../packages/fe/ui/src/styles/*"],
             "config": ["../../../../config/index"],
-            "@repo/fe-utils": ["../../../../packages/fe/utils/src"],
+            "@repo/fe-utils": ["../../../../packages/fe/utils"],
             "measurement/MapToolBridge": [
                 "../../../../apps/fe/remote/measurement/src/features/planar-distance/mapToolBridgePublic.ts"
             ],

@@ -14,8 +14,7 @@
     },
     "dependencies": {
         "@reduxjs/toolkit": "^2.6.1",
-        "@repo/fe-ui": "workspace:*",
-        "@repo/fe-utils": "workspace:*",
+        "@repo/packages": "workspace:*",
         "@tanstack/react-table": "^8.21.3",
         "@tanstack/react-virtual": "^3.13.12",
         "axios": "1.11.0",
@@ -33,7 +32,6 @@
     "devDependencies": {
         "@antdevx/vite-plugin-hmr-sync": "^1.0.0",
         "@module-federation/vite": "^1.10.0",
-        "@repo/shared-config": "workspace:*",
         "@types/node": "^22.13.14",
         "@types/react": "^19.0.10",
         "@types/react-dom": "^19.0.4",
