@@ -37,7 +37,7 @@ export const MOCK_MENU_DATA: FinalMenuTree = [
                     {
                         name: '면적측정',
                         type: 'LEAF',
-                        url: '14',
+                        url: 'measurement/planar-area',
                     },
                     {
                         name: '표고측정',

@@ -7,6 +7,7 @@ import {
     useMemo,
     useRef,
     useState,
+    type ReactNode,
 } from 'react'
 import { RemoteAppConfig } from './config'
 import { loadRemoteModule } from 'virtual:mf-remote-imports'
@@ -67,7 +68,7 @@ function AutoRetryFallback({
     delayMs: number
     error: unknown
     onRetry: () => void
-    errorFallback?: React.ReactNode
+    errorFallback?: ReactNode
 }) {
     const isExhausted = attempt >= maxAttempts
 
@@ -108,9 +109,9 @@ interface RemoteAppLoaderProps {
     /** 리모트 앱 설정 */
     config: RemoteAppConfig
     /** 로딩 중 표시할 컴포넌트 */
-    fallback?: React.ReactNode
+    fallback?: ReactNode
     /** 에러 발생 시 표시할 컴포넌트 */
-    errorFallback?: React.ReactNode
+    errorFallback?: ReactNode
     /** 리모트 앱에 전달할 props */
     props?: Record<string, unknown>
 }

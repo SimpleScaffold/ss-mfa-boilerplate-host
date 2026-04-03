@@ -1,4 +1,4 @@
-import { Component, ReactNode } from 'react'
+import { Component, type ErrorInfo, type ReactNode } from 'react'
 import { RemoteAppConfig } from './config'
 
 interface RemoteAppErrorBoundaryProps {
@@ -37,7 +37,7 @@ export class RemoteAppErrorBoundary extends Component<
         }
     }
 
-    componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    componentDidCatch(error: Error, errorInfo: ErrorInfo) {
         console.error(
             `Remote App Error (${this.props.config.id}):`,
             error,

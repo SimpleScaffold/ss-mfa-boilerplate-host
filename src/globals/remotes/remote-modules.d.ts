@@ -10,6 +10,7 @@ declare module 'measurement/MapToolBridge' {
 
     export const MAP_TOOL_ID: {
         readonly PLANAR_DISTANCE: 'planar-distance'
+        readonly PLANAR_AREA: 'planar-area'
     }
 
     export type MapToolId = (typeof MAP_TOOL_ID)[keyof typeof MAP_TOOL_ID]
@@ -27,6 +28,18 @@ declare module 'measurement/MapToolBridge' {
         labelFontSizePx: number
     }
 
+    export interface PlanarAreaToolOptions {
+        mode: PlanarMeasureMode
+        keepPreviousOnNewMeasure: boolean
+        outlineColor: string
+        fillColor: string
+        labelColor: string
+        markerColor: string
+        polygonLabel: string
+        lineWidthPx: number
+        labelFontSizePx: number
+    }
+
     export type MapToolSession =
         | { active: false }
         | {
@@ -34,11 +47,20 @@ declare module 'measurement/MapToolBridge' {
               toolId: typeof MAP_TOOL_ID.PLANAR_DISTANCE
               options: PlanarDistanceToolOptions
           }
+        | {
+              active: true
+              toolId: typeof MAP_TOOL_ID.PLANAR_AREA
+              options: PlanarAreaToolOptions
+          }
 
     export type MapToolBridgeApi = {
         setActive(
             toolId: typeof MAP_TOOL_ID.PLANAR_DISTANCE,
             options: PlanarDistanceToolOptions,
+        ): void
+        setActive(
+            toolId: typeof MAP_TOOL_ID.PLANAR_AREA,
+            options: PlanarAreaToolOptions,
         ): void
         end: () => void
     }
