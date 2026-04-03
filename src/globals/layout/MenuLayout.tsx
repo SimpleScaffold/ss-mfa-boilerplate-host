@@ -28,9 +28,9 @@ import { useAppSelector } from '../store/redux/reduxHooks'
 import type { FinalMenuTree } from 'src/features/menu/types/finalMenuTypes'
 import { convertToFinalMenu } from 'src/features/menu/utils/converter'
 import {
-    PlanarDistanceBridgeProvider,
-    usePlanarDistanceBridgeApi,
-} from '@repo/mf-modal-protocol'
+    MapToolBridgeProvider,
+    useMapToolBridgeApi,
+} from 'src/globals/mfModalProtocol'
 import {
     ModalConstraintProvider,
     useModalConstraint,
@@ -38,14 +38,6 @@ import {
 
 function isExternalUrl(url: string): boolean {
     return url.startsWith('http')
-}
-
-/** kebab-case → PascalCase (예: planar-distance → PlanarDistance) */
-function kebabToPascal(kebab: string): string {
-    return kebab
-        .split('-')
-        .map((s) => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase())
-        .join('')
 }
 
 export type ModalModuleInfo = {
@@ -59,7 +51,7 @@ export type ModalModuleInfo = {
  * 메뉴 url '{remoteName}/{path}' (예: measurement/planar-distance) 해석.
  * - remoteName을 config remotes에서 조회 → base URL (예: http://localhost:12001) 매핑
  * - 그 remote의 {baseUrl}/{path} = http://localhost:12001/planar-distance 에 해당하는 화면을
- *   모듈 페더레이션으로 로드해 보여줌 (path는 kebab→Pascal로 MF expose 경로로 변환).
+ *   모듈 페더레이션으로 로드해 보여줌 (`modulePath`는 메뉴 url과 동일하게 kebab, 예: measurement/planar-distance).
  */
 function parseModalUrl(url: string): ModalModuleInfo | null {
     const normalized = url?.replace(/^#?\/*|\/*$/g, '') || url
@@ -69,9 +61,8 @@ function parseModalUrl(url: string): ModalModuleInfo | null {
     const pathSegment = pathParts.join('/')
     const remote = getRemoteConfigByNameSync(remoteName)
     if (!remote) return null
-    // remote.url = base (예: http://localhost:12001), path = /planar-distance → MF로 해당 expose 로드
-    const exposeName = kebabToPascal(pathSegment)
-    const modulePath = `${remoteName}/${exposeName}`
+    // remote.url = base (예: http://localhost:12001), path = /planar-distance → MF expose `./planar-distance`
+    const modulePath = `${remoteName}/${pathSegment}`
     const displayName = pathSegment
         .split('-')
         .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
@@ -231,7 +222,7 @@ const MenuLayout = () => {
 
     return (
         <ModalConstraintProvider>
-            <PlanarDistanceBridgeProvider>
+            <MapToolBridgeProvider>
                 <DSsideMenu
                     menu={finalMenu}
                     baseMenuLoading={baseMenuLoading}
@@ -254,7 +245,7 @@ const MenuLayout = () => {
                         modalItem={item}
                     />
                 ))}
-            </PlanarDistanceBridgeProvider>
+            </MapToolBridgeProvider>
         </ModalConstraintProvider>
     )
 }
@@ -270,14 +261,13 @@ function MenuModal({
 }) {
     const ctx = useModalConstraint()
     const constraintRef = ctx?.constraintRef
-    const planarBridge = usePlanarDistanceBridgeApi()
+    const mapToolApi = useMapToolBridgeApi()
 
-    /** `planarBridge` 병합 — `doc/kr/planar-distance-microfrontend.md` */
     const remoteProps = useMemo(() => {
         const base = modalItem.modalProps ?? {}
-        if (!planarBridge) return base
-        return { ...base, planarBridge }
-    }, [modalItem.modalProps, planarBridge])
+        if (!mapToolApi) return base
+        return { ...base, mapToolBridge: mapToolApi }
+    }, [modalItem.modalProps, mapToolApi])
 
     // 참조 안정화: 새 모달이 열릴 때 부모 리렌더로 인해 fallback/errorFallback이
     // 매번 새로 생성되면 RemoteAppLoader의 useMemo가 무효화되어 기존 열린 모달들까지

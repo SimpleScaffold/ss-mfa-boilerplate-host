@@ -1,16 +1,7 @@
 {
-    "extends": "../../../../tsconfig.base.json",
+    "extends": "./tsconfig.app.json",
     "compilerOptions": {
-        "outDir": "./dist",
-        "baseUrl": "../../../../",
-        "jsx": "react-jsx",
-        "paths": {
-            "src/*": ["./apps/fe/host/host/src/*"],
-            "config": ["./config/index"]
-        },
-        "moduleResolution": "bundler",
-        "allowImportingTsExtensions": true,
-        "skipLibCheck": true
+        "outDir": "./dist"
     },
-    "include": ["src"]
+    "include": ["./src"]
 }

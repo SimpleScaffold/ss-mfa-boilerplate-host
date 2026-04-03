@@ -15,6 +15,7 @@ import {
     getRemoteExposePathsFromMenu,
     REMOTE_MAIN_EXPOSES,
     type EnvMode,
+    type RemoteConfig,
 } from '../../../../config'
 import {
     buildFederationRemotes,
@@ -26,7 +27,6 @@ import {
     getPortFromUrl,
     hostFederationShared,
     mfVirtualRemotesPlugin,
-    type RemoteEntry,
 } from './vite'
 import { MOCK_MENU_DATA } from './src/features/menu/data/menuMockData'
 
@@ -51,7 +51,7 @@ export default defineConfig(async (): Promise<UserConfig> => {
             : getPortFromUrl(baseUrl)
     const host = extractHostFromUrl(baseUrl)
 
-    const remoteConfigs = (await getRemoteConfigs(envMode)) as RemoteEntry[]
+    const remoteConfigs: RemoteConfig[] = await getRemoteConfigs(envMode)
     const remoteNames = new Set(
         remoteConfigs.map((r) => r.name).filter((n): n is string => Boolean(n)),
     )
@@ -99,13 +99,6 @@ export default defineConfig(async (): Promise<UserConfig> => {
         },
         resolve: {
             alias: [
-                {
-                    find: '@repo/mf-modal-protocol',
-                    replacement: path.join(
-                        repoRoot,
-                        'packages/fe/mf-modal-protocol/src/index.ts',
-                    ),
-                },
                 { find: 'config', replacement: path.join(repoRoot, 'config') },
                 { find: /^@\//, replacement: `${uiSrc}/` },
                 { find: /^src\//, replacement: `${hostSrc}/` },
