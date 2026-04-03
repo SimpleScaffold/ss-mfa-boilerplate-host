@@ -10,7 +10,7 @@
             ],
             "@repo/fe-ui/styles/*": ["../../../../packages/fe/ui/src/styles/*"],
             "config": ["../../../../config/index"],
-            "@repo/fe-utils": ["../../../../packages/fe/utils"],
+            "@repo/fe-utils/*": ["../../../../packages/fe/utils/*"],
             "measurement/MapToolBridge": [
                 "../../../../apps/fe/remote/measurement/src/mf-exports/MapToolBridge.ts"
             ],
