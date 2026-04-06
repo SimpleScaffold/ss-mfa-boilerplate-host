@@ -129,6 +129,7 @@ export default defineConfig(async (): Promise<UserConfig> => {
             strictPort: true,
             open: false,
             cors: true,
+            proxy: devServerProxy,
         },
         build: {
             target: 'chrome107',
