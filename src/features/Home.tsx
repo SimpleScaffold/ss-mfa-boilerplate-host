@@ -1,4 +1,4 @@
-import { MapScene } from 'src/globals/cesium/ui/MapScene'
+import { MapScene } from 'src/globals/cesium/components/MapScene'
 
 const Home = () => {
     return (
