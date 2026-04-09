@@ -48,5 +48,4 @@ export function buildFederationRemotes(
 export const hostFederationShared = {
     react: { singleton: true },
     'react-dom': { singleton: true },
-    cesium: { singleton: true },
 } as const

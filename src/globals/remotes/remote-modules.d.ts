@@ -28,7 +28,11 @@ declare module 'measurement/RemoteMapToolEffects' {
     import type { MapToolSession } from 'measurement/MapToolBridge'
     import type { Viewer } from 'cesium'
 
+    /** 호스트에서 `import * as Cesium from 'cesium'` 로 넘기는 값 */
+    export type CesiumModule = typeof import('cesium')
+
     export function useRemoteMapToolViewerEffects(
+        cesium: CesiumModule,
         viewer: Viewer | null | undefined,
         session: MapToolSession,
     ): void
