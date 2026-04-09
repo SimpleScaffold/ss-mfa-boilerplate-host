@@ -24,7 +24,7 @@ const sagaMiddleware = createSagaMiddleware()
 const store = configureStore({
     reducer: reducers,
     middleware: () => new Tuple(sagaMiddleware),
-    devTools: process.env.NODE_ENV !== 'production', //보여지는지 여부
+    devTools: import.meta.env.DEV, //보여지는지 여부
 })
 
 export type AppStore = typeof store
