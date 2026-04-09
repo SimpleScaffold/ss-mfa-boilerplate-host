@@ -39,6 +39,19 @@ declare module 'measurement/RemoteMapToolEffects' {
     ): void
 }
 
+declare module 'terrain-analysis/RemoteMapToolEffects' {
+    import type { MapToolSession } from 'measurement/MapToolBridge'
+    import type { Viewer } from 'cesium'
+
+    export type CesiumModule = typeof import('cesium')
+
+    export function useRemoteMapToolViewerEffects(
+        cesium: CesiumModule,
+        viewer: Viewer | null | undefined,
+        session: MapToolSession,
+    ): void
+}
+
 declare module 'measurement/*' {
     import { ComponentType } from 'react'
     const C: ComponentType<Record<string, unknown>>
@@ -46,6 +59,12 @@ declare module 'measurement/*' {
 }
 
 declare module 'remote/*' {
+    import { ComponentType } from 'react'
+    const C: ComponentType<Record<string, unknown>>
+    export default C
+}
+
+declare module 'terrain-analysis/*' {
     import { ComponentType } from 'react'
     const C: ComponentType<Record<string, unknown>>
     export default C

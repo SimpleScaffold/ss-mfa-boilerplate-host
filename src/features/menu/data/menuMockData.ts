@@ -56,6 +56,7 @@ export const MOCK_MENU_DATA: FinalMenuTree = [
                     },
                 ],
             },
+
             {
                 name: '3D 라이브러리',
                 type: 'GROUP',
@@ -191,7 +192,7 @@ export const MOCK_MENU_DATA: FinalMenuTree = [
                     {
                         name: '토공량 계산',
                         type: 'LEAF',
-                        url: '34',
+                        url: 'terrain-analysis/terrain-volume',
                     },
                     {
                         name: '지형 단면 분석',
