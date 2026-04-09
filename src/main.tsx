@@ -6,7 +6,7 @@ import store from 'src/globals/store/redux/reduxStore.tsx'
 import { setupSharedReact } from 'src/globals/dev/setupSharedReact'
 import { setupViteFirstLoadRecovery } from 'src/globals/dev/setupViteFirstLoadRecovery'
 
-import '@repo/fe-ui/styles'
+import '@repo/packages/fe-ui/styles'
 
 setupSharedReact()
 

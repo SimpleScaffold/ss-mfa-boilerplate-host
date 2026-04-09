@@ -3,6 +3,7 @@
  *
  * - 모달 페이지는 `measurement/*` 와일드카드로 기본 타입.
  * - 지도 브리지·Viewer 훅은 measurement가 소유; 호스트는 도메인 이름 없는 엔트리만 참조.
+ * - 호스트에서 소스로 풀 TS 리졸브가 필요하면 `apps/fe/tsconfig.host.json` paths 도 추가.
  */
 declare module 'measurement/MapToolBridge' {
     import type { ReactElement, ReactNode } from 'react'

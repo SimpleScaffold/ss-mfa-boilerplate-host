@@ -3,7 +3,7 @@ import path from 'node:path'
 import type { Plugin } from 'vite'
 
 /**
- * @repo/fe-ui 패키지 내부의 상대 경로 import를 해석하기 위한 플러그인
+ * `packages/fe/ui` 소스 내부의 상대 경로 import를 해석하기 위한 플러그인
  */
 export function feUiResolvePlugin(): Plugin {
     return {

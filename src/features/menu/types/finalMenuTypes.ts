@@ -1,6 +1,6 @@
 /**
  * 최종 메뉴 구조 타입 정의
- * @repo/fe-ui DSsideMenu와 호환되는 타입
+ * @repo/packages/fe-ui DSsideMenu와 호환되는 타입
  */
 
 export type FinalMenuType = 'GROUP' | 'LEAF'

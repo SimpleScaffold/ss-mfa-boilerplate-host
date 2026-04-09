@@ -11,7 +11,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Outlet } from 'react-router'
 import { shallowEqual, useDispatch } from 'react-redux'
-import { DSsideMenu } from '@repo/fe-ui/dssidemenu'
+import { DSsideMenu } from '@repo/packages/fe-ui/dssidemenu'
 import {
     DSmodal,
     DSmodalContent,
@@ -19,7 +19,7 @@ import {
     DSmodalTitle,
     DSmodalClose,
     DSmodalBody,
-} from '@repo/fe-ui/dsmodal'
+} from '@repo/packages/fe-ui/dsmodal'
 import { getRemoteConfigByNameSync } from 'config'
 import { loadRemoteModule } from 'virtual:mf-remote-imports'
 import { menuAction } from 'src/features/menu/menuReducer'
