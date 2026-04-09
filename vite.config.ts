@@ -10,11 +10,7 @@ import { viteStaticCopy } from 'vite-plugin-static-copy'
 import {
     ENV_MODE,
     getHostConfig,
-    getModalExpansionModulePaths,
-    getModalModulePathsFromMenu,
     getRemoteConfigs,
-    getRemoteExposePathsFromMenu,
-    REMOTE_MAIN_EXPOSES,
     type EnvMode,
     type RemoteConfig,
 } from '../../../../config'
@@ -25,9 +21,13 @@ import {
     extractHostFromUrl,
     feUiResolvePlugin,
     getCesiumSource,
+    getModalExpansionModulePaths,
+    getModalModulePathsFromMenu,
     getPortFromUrl,
+    getRemoteExposePathsFromMenu,
     hostFederationShared,
     mfVirtualRemotesPlugin,
+    REMOTE_MAIN_EXPOSES,
 } from './vite'
 import { devServerProxy } from './vite/proxy'
 import { MOCK_MENU_DATA } from './src/features/menu/data/menuMockData'

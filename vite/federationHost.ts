@@ -1,4 +1,5 @@
-import type { RemoteConfig, RemoteExposePaths } from '../../../../../config'
+import type { RemoteConfig } from '../../../../../config'
+import type { RemoteExposePaths } from './mfRemoteMenu'
 
 /** @module-federation/vite Host remotes — Vite 원격은 ESM remoteEntry이므로 `type: 'module'` 필수 (미지정 시 classic script로 로드되어 import 구문 오류). */
 export function buildFederationRemotes(

@@ -1,4 +1,5 @@
 import type { Plugin } from 'vite'
+import type { RemoteExposePaths } from '../mfRemoteMenu'
 
 export type RemoteEntry = {
     name?: string
@@ -7,8 +8,6 @@ export type RemoteEntry = {
     modulePath?: string
     enabled?: boolean
 }
-
-export type RemoteExposePaths = Record<string, Record<string, string>>
 
 export interface MfVirtualRemotesOptions {
     remoteExposePaths: RemoteExposePaths
