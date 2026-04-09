@@ -32,7 +32,7 @@ export const MOCK_MENU_DATA: FinalMenuTree = [
                     {
                         name: '수직거리',
                         type: 'LEAF',
-                        url: '13',
+                        url: 'measurement/vertical-distance',
                     },
                     {
                         name: '면적측정',
