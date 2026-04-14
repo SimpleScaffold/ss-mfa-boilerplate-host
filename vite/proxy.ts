@@ -29,11 +29,12 @@ export const devServerProxy: Record<string, ProxyOptions> = {
         },
     },
     '/terr-svr': {
-        target: 'http://10.10.20.163:8000',
+        target: 'http://106.245.249.226:16000',
         changeOrigin: true,
         rewrite: (p) =>
             p.replace(
                 /^\/terr-svr/,
+                // Cesium은 `/terr-svr/layer.json` 등을 요청 → 실제 quantized-mesh 루트는 tilesets 하위 데이터셋 폴더
                 '/lxpf-svc3d-back-terr-svc/tilesets/CTB_2024',
             ),
     },
