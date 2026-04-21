@@ -49,11 +49,6 @@ export const MOCK_MENU_DATA: FinalMenuTree = [
                         type: 'LEAF',
                         url: '16',
                     },
-                    {
-                        name: '제거',
-                        type: 'LEAF',
-                        url: '17',
-                    },
                 ],
             },
         ],
