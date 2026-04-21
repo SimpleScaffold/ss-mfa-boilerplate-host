@@ -7,19 +7,20 @@
  * - 모달 모듈(평면거리 등) 클릭 시 DSmodal로 마이크로프론트 로드
  */
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Outlet } from 'react-router'
 import { shallowEqual, useDispatch } from 'react-redux'
 import { DSsideMenu } from '@repo/packages/fe-ui/dssidemenu'
 import {
     DSmodal,
+    DSmodalBody,
+    DSmodalClose,
     DSmodalContent,
     DSmodalHeader,
     DSmodalTitle,
-    DSmodalClose,
-    DSmodalBody,
 } from '@repo/packages/fe-ui/dsmodal'
+import type { ModalInitialPosition } from '@repo/packages/fe-utils/modal/modalInitialPosition'
 import { getRemoteConfigByNameSync } from 'config'
 import { loadRemoteModule } from 'virtual:mf-remote-imports'
 import { menuAction } from 'src/features/menu/menuReducer'
@@ -53,6 +54,17 @@ export type ModalModuleInfo = {
  * - 그 remote의 {baseUrl}/{path} = http://localhost:12001/planar-distance 에 해당하는 화면을
  *   모듈 페더레이션으로 로드해 보여줌 (`modulePath`는 메뉴 url과 동일하게 kebab, 예: measurement/planar-distance).
  */
+/** getModalEntries 원격 반환 — 타입만 고정(런타임은 Remote가 책임) */
+type RemoteModalExpansionEntry = {
+    url: string
+    displayName: string
+    initialPosition?: ModalInitialPosition
+    initialSize?: { width: number; height: number }
+    props?: Record<string, unknown>
+    deferOpen?: boolean
+    deferralSignal?: string
+}
+
 function parseModalUrl(url: string): ModalModuleInfo | null {
     const normalized = url?.replace(/^#?\/*|\/*$/g, '') || url
     const parts = normalized.split('/').filter(Boolean)
@@ -120,18 +132,94 @@ function ModalErrorFallback({ remoteName }: { remoteName: string }) {
 
 type OpenModalItem = {
     id: string
-    /** Host에서 모달 초기 위치 제어. 없으면 (0,0) */
-    initialPosition?: { x: number; y: number }
+    /** Host에서 모달 초기 위치. 없으면 (0,0) */
+    initialPosition?: ModalInitialPosition
     /** Host에서 모달 초기 크기 제어. px 단위. 없으면 기본값(420x360) */
     initialSize?: { width: number; height: number }
     /** Remote 컴포넌트에 전달할 props (id 등 분기용) */
     modalProps?: Record<string, unknown>
+    /** true면 `deferralSignal` 이벤트 수신 전까지 시트를 열지 않음 */
+    deferOpen?: boolean
+    deferralSignal?: string
 } & ModalModuleInfo
+
+/**
+ * 동일 원격 모듈·동일 `modalId` 조합은 하나만 유지 (메뉴 재클릭·연속 측정 이벤트 중복 방지).
+ * `modalId` 없으면 `modulePath`만으로 구분.
+ */
+function modalInstanceKey(
+    item: Pick<OpenModalItem, 'modulePath' | 'modalProps'>,
+): string {
+    const raw = item.modalProps?.modalId
+    const modalId = typeof raw === 'string' ? raw : ''
+    return `${item.modulePath}::${modalId}`
+}
+
+/** terrain-analysis 등 Remote와 문자열 동기화 */
+const DEFERRED_MODAL_OPEN_EVENT = 'micro-platform:open-deferred-modal'
+
+function computeModalSheetOpen(
+    item: OpenModalItem,
+    deferredReadyBySignal: Record<string, boolean>,
+): boolean {
+    if (!item.deferOpen || !item.deferralSignal) return true
+    return deferredReadyBySignal[item.deferralSignal] === true
+}
 
 const MenuLayout = () => {
     const dispatch = useDispatch()
 
     const [openModals, setOpenModals] = useState<OpenModalItem[]>([])
+    const [deferredModalReadyBySignal, setDeferredModalReadyBySignal] =
+        useState<Record<string, boolean>>({})
+    const deferredModalTemplatesRef = useRef<Map<string, OpenModalItem>>(
+        new Map(),
+    )
+
+    useEffect(() => {
+        const onDeferredOpen = (e: Event): void => {
+            const ce = e as CustomEvent<{ signalId?: string }>
+            const signalId =
+                ce.detail && typeof ce.detail.signalId === 'string'
+                    ? ce.detail.signalId
+                    : undefined
+            if (!signalId) return
+            setDeferredModalReadyBySignal((prev) => ({
+                ...prev,
+                [signalId]: true,
+            }))
+            setOpenModals((prev) => {
+                if (prev.some((m) => m.deferralSignal === signalId)) {
+                    return prev
+                }
+                const tmpl = deferredModalTemplatesRef.current.get(signalId)
+                if (!tmpl) return prev
+                const tmplKey = modalInstanceKey(tmpl)
+                if (prev.some((m) => modalInstanceKey(m) === tmplKey)) {
+                    return prev
+                }
+                return [
+                    ...prev,
+                    {
+                        ...tmpl,
+                        id: `modal-${Date.now()}-deferred`,
+                        deferOpen: false,
+                        deferralSignal: undefined,
+                    },
+                ]
+            })
+        }
+        window.addEventListener(
+            DEFERRED_MODAL_OPEN_EVENT,
+            onDeferredOpen as EventListener,
+        )
+        return () => {
+            window.removeEventListener(
+                DEFERRED_MODAL_OPEN_EVENT,
+                onDeferredOpen as EventListener,
+            )
+        }
+    }, [])
 
     const handleInternalAction = useCallback((url: string) => {
         // '{remoteName}/{path}' → remotes name 매칭, modalExposes 있으면 모달로 MF 로드
@@ -156,36 +244,61 @@ const MenuLayout = () => {
                         getModalEntries?: (
                             r: string,
                             p: string,
-                        ) => Array<{
-                            url: string
-                            displayName: string
-                            initialPosition?: { x: number; y: number }
-                            initialSize?: { width: number; height: number }
-                            props?: Record<string, unknown>
-                        }> | null
+                        ) => RemoteModalExpansionEntry[] | null
                     }
-                    const entries =
+                    const entries: RemoteModalExpansionEntry[] | null =
                         typeof m?.getModalEntries === 'function'
-                            ? m.getModalEntries(remoteName, path)
+                            ? (m.getModalEntries(remoteName, path) ?? null)
                             : null
                     if (entries && entries.length > 0) {
-                        setOpenModals((prev) => [
-                            ...prev,
-                            ...entries.flatMap((opt, i) => {
+                        const signalsToReset = entries
+                            .filter(
+                                (
+                                    o,
+                                ): o is RemoteModalExpansionEntry & {
+                                    deferralSignal: string
+                                } => Boolean(o.deferOpen && o.deferralSignal),
+                            )
+                            .map((o) => o.deferralSignal)
+                        if (signalsToReset.length > 0) {
+                            setDeferredModalReadyBySignal((s) => {
+                                const next = { ...s }
+                                for (const sig of signalsToReset) {
+                                    next[sig] = false
+                                }
+                                return next
+                            })
+                        }
+                        setOpenModals((prev) => {
+                            const incoming = entries.flatMap((opt, i) => {
                                 const info = parseModalUrl(opt.url)
                                 if (!info) return []
-                                return [
-                                    {
-                                        id: `modal-${Date.now()}-${i}`,
-                                        ...info,
-                                        displayName: opt.displayName,
-                                        initialPosition: opt.initialPosition,
-                                        initialSize: opt.initialSize,
-                                        modalProps: opt.props,
-                                    },
-                                ]
-                            }),
-                        ])
+                                const item: OpenModalItem = {
+                                    id: `modal-${Date.now()}-${i}`,
+                                    ...info,
+                                    displayName: opt.displayName,
+                                    initialPosition: opt.initialPosition,
+                                    initialSize: opt.initialSize,
+                                    modalProps: opt.props,
+                                    deferOpen: opt.deferOpen,
+                                    deferralSignal: opt.deferralSignal,
+                                }
+                                if (opt.deferOpen && opt.deferralSignal) {
+                                    deferredModalTemplatesRef.current.set(
+                                        opt.deferralSignal,
+                                        item,
+                                    )
+                                }
+                                return [item]
+                            })
+                            const incomingKeys = new Set(
+                                incoming.map((m) => modalInstanceKey(m)),
+                            )
+                            const withoutReplaced = prev.filter(
+                                (m) => !incomingKeys.has(modalInstanceKey(m)),
+                            )
+                            return [...withoutReplaced, ...incoming]
+                        })
                     } else {
                         openSingleModal()
                     }
@@ -234,7 +347,10 @@ const MenuLayout = () => {
                 {openModals.map((item) => (
                     <MenuModal
                         key={item.id}
-                        open={true}
+                        open={computeModalSheetOpen(
+                            item,
+                            deferredModalReadyBySignal,
+                        )}
                         onOpenChange={(open) => {
                             if (!open) {
                                 setOpenModals((prev) =>
