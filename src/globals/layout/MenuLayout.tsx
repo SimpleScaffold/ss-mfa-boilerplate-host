@@ -32,6 +32,8 @@ import {
     MapToolBridgeProvider,
     useMapToolBridgeApi,
 } from 'measurement/MapToolBridge'
+import { HostThemeSettingsDrawer } from 'src/globals/theme/HostThemeSettingsDrawer.tsx'
+import { HostThemeSwitch } from 'src/globals/theme/HostThemeSwitch.tsx'
 import {
     ModalConstraintProvider,
     useModalConstraint,
@@ -313,10 +315,9 @@ const MenuLayout = () => {
         // TODO: 기타 내부 액션 (actionCode)
     }, [])
 
-    const { baseMenu, baseMenuLoading } = useAppSelector(
+    const { baseMenu } = useAppSelector(
         ({ menuReducer }) => ({
             baseMenu: menuReducer.baseMenu.data as FinalMenuTree | null,
-            baseMenuLoading: menuReducer.baseMenu.loading,
         }),
         shallowEqual,
     )
@@ -338,8 +339,12 @@ const MenuLayout = () => {
             <MapToolBridgeProvider>
                 <DSsideMenu
                     menu={finalMenu}
-                    baseMenuLoading={baseMenuLoading}
                     onInternalAction={handleInternalAction}
+                    headerTrailing={
+                        <>
+                            <HostThemeSettingsDrawer />
+                        </>
+                    }
                 >
                     <Outlet />
                 </DSsideMenu>

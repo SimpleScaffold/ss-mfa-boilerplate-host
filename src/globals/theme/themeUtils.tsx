@@ -1,6 +1,5 @@
 // 테마 관련 유틸리티 함수들
-import { useContext } from 'react'
-import { Theme, ThemeContext } from 'src/globals/theme/theme-provider.tsx'
+import type { ResolvedTheme } from 'src/globals/theme/theme-provider.tsx'
 import store from 'src/globals/store/redux/reduxStore.tsx'
 import { themeAction } from 'src/globals/theme/themeReducer.tsx'
 
@@ -13,21 +12,6 @@ type StoredThemeVars = {
 
 const parseStoredThemeVars = (raw: string): StoredThemeVars => {
     return JSON.parse(raw) as StoredThemeVars
-}
-
-// 테마 확인, 테마 수정, 다크모드 여부 Hook
-export const useTheme = () => {
-    const context = useContext(ThemeContext)
-    if (!context) {
-        throw new Error('useTheme must be used within a ThemeProvider')
-    }
-    const { theme, setTheme } = context
-    const isDarkTheme = theme === 'dark'
-    return {
-        theme,
-        setTheme,
-        isDarkTheme,
-    }
 }
 
 // lightVars, darkVars 를 로컬 스토리지 에서 들고옴
@@ -51,7 +35,11 @@ export const getCustomVarsFromLocalStorage = (): {
     }
 }
 
-export const saveThemeVar = (theme: Theme, key: string, value: string) => {
+export const saveThemeVar = (
+    theme: ResolvedTheme,
+    key: string,
+    value: string,
+) => {
     const raw = localStorage.getItem(VARS_KEY)
     const parsed: StoredThemeVars = raw ? parseStoredThemeVars(raw) : {}
     const themeKey = theme === 'dark' ? 'darkVars' : 'lightVars'
@@ -69,7 +57,7 @@ export const saveThemeVar = (theme: Theme, key: string, value: string) => {
 }
 
 // 변경된 테마를 적용
-export const applyThemeVariables = (theme: Theme) => {
+export const applyThemeVariables = (theme: ResolvedTheme) => {
     const root = document.documentElement
 
     const { lightVars = {}, darkVars = {} } = getCustomVarsFromLocalStorage()
@@ -105,7 +93,7 @@ export const clearThemeVariables = () => {
 }
 
 // 특정 테마를 리셋함
-export const handleReset = (theme: Theme) => {
+export const handleReset = (theme: ResolvedTheme) => {
     const raw = localStorage.getItem(VARS_KEY)
     if (!raw) return
 
@@ -118,14 +106,11 @@ export const handleReset = (theme: Theme) => {
     delete parsed[themeKey]
     localStorage.setItem(VARS_KEY, JSON.stringify(parsed))
 
-    const currentTheme = localStorage.getItem('vite-ui-theme')
-    if (currentTheme === theme) {
-        const root = document.documentElement
-        allKeys.forEach((key) => {
-            root.style.removeProperty(key)
-        })
-        applyThemeVariables(theme)
-    }
+    const root = document.documentElement
+    allKeys.forEach((key) => {
+        root.style.removeProperty(key)
+    })
+    applyThemeVariables(theme)
 
-    store.dispatch(themeAction.setColors({}))
+    store.dispatch(themeAction.setColors())
 }
