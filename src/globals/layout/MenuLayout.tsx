@@ -33,7 +33,6 @@ import {
     useMapToolBridgeApi,
 } from 'measurement/MapToolBridge'
 import { HostThemeSettingsDrawer } from 'src/globals/theme/HostThemeSettingsDrawer.tsx'
-import { HostThemeSwitch } from 'src/globals/theme/HostThemeSwitch.tsx'
 import {
     ModalConstraintProvider,
     useModalConstraint,
