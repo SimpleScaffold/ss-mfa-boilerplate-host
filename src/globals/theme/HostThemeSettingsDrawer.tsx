@@ -10,15 +10,15 @@ import {
 } from '@repo/packages/fe-ui/accordion'
 import { Button } from '@repo/packages/fe-ui/button'
 import {
-    Drawer,
-    DrawerClose,
-    DrawerContent,
-    DrawerDescription,
-    DrawerFooter,
-    DrawerHeader,
-    DrawerTitle,
-    DrawerTrigger,
-} from '@repo/packages/fe-ui/drawer'
+    Sheet,
+    SheetClose,
+    SheetContent,
+    SheetDescription,
+    SheetFooter,
+    SheetHeader,
+    SheetTitle,
+    SheetTrigger,
+} from '@repo/packages/fe-ui/sheet'
 
 import type { RootState } from 'src/globals/store/redux/reduxStore.tsx'
 
@@ -87,8 +87,8 @@ export const HostThemeSettingsDrawer = () => {
     const { theme } = useTheme()
 
     return (
-        <Drawer direction="right" shouldScaleBackground={false}>
-            <DrawerTrigger asChild>
+        <Sheet>
+            <SheetTrigger asChild>
                 <Button
                     type="button"
                     variant="ghost"
@@ -98,41 +98,50 @@ export const HostThemeSettingsDrawer = () => {
                 >
                     <Palette className="h-5 w-5" />
                 </Button>
-            </DrawerTrigger>
+            </SheetTrigger>
 
-            <DrawerContent className="border-border fixed top-0 right-0 bottom-0 left-auto z-50 mt-0 flex h-[100dvh] max-h-[100dvh] w-full max-w-md flex-col rounded-none border-l">
-                <DrawerHeader className="border-border border-b text-left">
-                    <DrawerTitle className="border-border flex items-center justify-between gap-4 border-b pb-4">
+            <SheetContent
+                hideCloseButton
+                side="right"
+                className="border-border bg-background flex h-[100dvh] max-h-[100dvh] w-full max-w-md flex-col gap-0 overflow-hidden rounded-l-xl border-l p-0 shadow-xl sm:max-w-md"
+            >
+                <SheetHeader className="grid shrink-0 gap-1.5 p-4 text-left sm:text-left">
+                    <SheetTitle className="border-border flex items-center justify-between gap-4 border-b pb-4 text-lg leading-none font-semibold tracking-tight">
                         <span>색상 설정</span>
                         <HostThemeSwitch />
-                    </DrawerTitle>
-                    <DrawerDescription className="sr-only">
+                    </SheetTitle>
+                    <SheetDescription className="sr-only">
                         디자인 토큰(CSS 변수)을 현재 라이트/다크 테마에 맞게
                         조정합니다.
-                    </DrawerDescription>
-                </DrawerHeader>
+                    </SheetDescription>
+                </SheetHeader>
 
-                <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4">
+                <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pt-2 pb-4">
                     <HostThemeColorPickers />
                 </div>
 
-                <DrawerFooter className="border-border border-t">
+                <SheetFooter className="border-border bg-muted/30 mt-auto flex w-full shrink-0 flex-col gap-2 border-t p-4 sm:flex-col sm:justify-stretch sm:space-x-0">
                     <Button
                         type="button"
                         variant="secondary"
+                        className="w-full"
                         onClick={() => {
                             handleReset(theme)
                         }}
                     >
                         초기화
                     </Button>
-                    <DrawerClose asChild>
-                        <Button type="button" variant="outline">
+                    <SheetClose asChild>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            className="w-full"
+                        >
                             닫기
                         </Button>
-                    </DrawerClose>
-                </DrawerFooter>
-            </DrawerContent>
-        </Drawer>
+                    </SheetClose>
+                </SheetFooter>
+            </SheetContent>
+        </Sheet>
     )
 }
