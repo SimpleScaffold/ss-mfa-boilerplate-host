@@ -18,7 +18,7 @@
         "@tanstack/react-table": "^8.21.3",
         "@tanstack/react-virtual": "^3.13.12",
         "axios": "1.11.0",
-        "cesium": "^1.137.0",
+        "cesium": "^1.140.0",
         "lucide-react": "^0.562.0",
         "react": "^19.1.0",
         "react-dom": "^19.1.0",
