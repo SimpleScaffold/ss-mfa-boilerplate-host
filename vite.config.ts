@@ -37,6 +37,14 @@ const repoRoot = path.resolve(__dirname, '../../../../')
 const hostSrc = path.resolve(__dirname, 'src')
 const uiSrc = path.join(repoRoot, 'packages/fe/ui/src')
 
+function mapVendorManualChunk(moduleId: string): string | undefined {
+    const norm = moduleId.replace(/\\/g, '/')
+    if (norm.includes('/node_modules/cesium/')) {
+        return 'cesium-vendor'
+    }
+    return undefined
+}
+
 export default defineConfig(async (): Promise<UserConfig> => {
     const envMode = (process.env.MF_ENV || ENV_MODE.LOCAL) as EnvMode
     const hostConfig = await getHostConfig(envMode)
@@ -139,6 +147,9 @@ export default defineConfig(async (): Promise<UserConfig> => {
                     generatedCode: {
                         constBindings: true,
                         objectShorthand: true,
+                    },
+                    manualChunks(id) {
+                        return mapVendorManualChunk(id)
                     },
                 },
             },
