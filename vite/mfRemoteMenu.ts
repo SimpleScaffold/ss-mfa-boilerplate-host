@@ -13,6 +13,7 @@ export const REMOTE_MAIN_EXPOSES: Record<
     string,
     { path: string; exposeName: string }
 > = {
+    remote: { path: '/remote', exposeName: 'Remote' },
     measurement: { path: '/measurement', exposeName: 'Measurement' },
     'terrain-analysis': {
         path: '/Terrain-analysis',
@@ -90,16 +91,9 @@ export function getModalModulePathsFromMenu(
     return [...new Set(paths)]
 }
 
-/** 모달 확장(ModalExpansions expose)을 쓰는 remote 이름 */
-export const REMOTES_WITH_MODAL_EXPANSIONS = [
-    'measurement',
-    'terrain-analysis',
-] as const
-
+/** 모든 remote가 ModalExpansions를 expose한다고 가정하고 경로를 생성 */
 export function getModalExpansionModulePaths(
     remoteNames: Set<string>,
 ): string[] {
-    return REMOTES_WITH_MODAL_EXPANSIONS.filter((name) =>
-        remoteNames.has(name),
-    ).map((name) => `${name}/ModalExpansions`)
+    return [...remoteNames].map((name) => `${name}/ModalExpansions`)
 }
