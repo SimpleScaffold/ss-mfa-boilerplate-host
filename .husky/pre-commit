@@ -1,0 +1,77 @@
+#!/usr/bin/env sh
+
+set -e
+
+# lint-staged 실행 헬퍼
+# - 앱 레포에 lint-staged가 설치되어 있지 않아도(또는 yarn이 script로만 인식해도)
+#   micro-platform 루트 node_modules에 설치된 바이너리로 fallback 합니다.
+run_lint_staged() {
+    # prettier/eslint 바이너리 탐색 경로를 보강 (앱 레포/루트 둘 다 커버)
+    export PATH="$(pwd)/node_modules/.bin:../../../../node_modules/.bin:$PATH"
+
+    # 1) 앱 레포에 직접 설치된 lint-staged가 있으면 그걸 사용
+    if [ -x "./node_modules/.bin/lint-staged" ]; then
+        ./node_modules/.bin/lint-staged
+        return 0
+    fi
+
+    # 2) micro-platform 루트에 설치된 lint-staged로 fallback
+    # (Yarn이 "script"로 해석해서 실패하는 케이스를 피하기 위해 node로도 실행 지원)
+    if [ -f "../../../../node_modules/lint-staged/bin/lint-staged.js" ]; then
+        node ../../../../node_modules/lint-staged/bin/lint-staged.js
+        return 0
+    fi
+    if [ -x "../../../../node_modules/.bin/lint-staged" ]; then
+        ../../../../node_modules/.bin/lint-staged
+        return 0
+    fi
+
+    # 3) 마지막으로 yarn을 통해 실행 시도 (설치가 되어있는 경우에만 성공)
+    if command -v yarn > /dev/null 2>&1; then
+        if yarn lint-staged; then
+            return 0
+        fi
+    fi
+
+    echo "Error: lint-staged not found. Please install dependencies (yarn install) or add lint-staged to this repo."
+    return 1
+}
+
+# 1. 환경 진단 및 Windows 환경 대응
+# WSL이 설치되어 있고, 현재 환경이 WSL 외부(Windows)인 경우
+if command -v wsl.exe > /dev/null 2>&1 && [ -z "$WSL_DISTRO_NAME" ]; then
+    echo "Environment: Windows detected. Proxying to WSL..."
+
+    # 현재 Windows 경로를 WSL 경로로 변환 (C:\ -> /mnt/c/)
+    WSL_PATH=$(wsl.exe wslpath -u "$(pwd)" | tr -d '\r')
+
+    # 1단계: WSL 내의 zsh 대화형 쉘로 yarn 경로 탐색 (NVM 환경 등 고려)
+    YARN_ABS_PATH=$(wsl.exe zsh -ic "which yarn" 2> /dev/null | tr -d '\r')
+
+    # 2단계: 실패 시 NVM 기본 경로에서 직접 탐색
+    if [ -z "$YARN_ABS_PATH" ] || echo "$YARN_ABS_PATH" | grep -q "not found"; then
+        YARN_ABS_PATH=$(wsl.exe zsh -c "ls \$HOME/.nvm/versions/node/*/bin/yarn 2>/dev/null | tail -n 1" | tr -d '\r')
+    fi
+
+    if [ -n "$YARN_ABS_PATH" ] && ! echo "$YARN_ABS_PATH" | grep -q "not found"; then
+        echo "Using WSL yarn at: $YARN_ABS_PATH"
+        NODE_DIR=$(dirname "$YARN_ABS_PATH")
+        # WSL 환경에서 동일 훅을 다시 실행 (WSL_DISTRO_NAME이 설정되어 Windows 분기 재진입 방지)
+        wsl.exe zsh -c "export PATH=\"$NODE_DIR:\$PATH\"; cd \"$WSL_PATH\" && sh .husky/pre-commit"
+        exit $?
+    else
+        # WSL 내부에 개발 환경이 없는 경우 윈도우 네이티브 환경에서 시도 (Fallback)
+        echo "WSL environment not ready. Falling back to Windows Native..."
+        if command -v yarn > /dev/null 2>&1; then
+            run_lint_staged
+            exit $?
+        else
+            echo "Error: yarn not found in both WSL and Windows."
+            exit 1
+        fi
+    fi
+fi
+
+# 2. Linux / WSL 내부 환경 대응 (또는 위 조건에 해당하지 않는 경우)
+# 이미 WSL 내부이거나 Linux 환경인 경우 직접 실행
+run_lint_staged

@@ -1,14 +1,15 @@
-import { reduxMaker } from 'src/globals/store/redux/reduxUtils.ts'
+import { reduxMaker } from 'src/globals/store/redux/reduxUtils'
 import { PayloadAction } from '@reduxjs/toolkit'
 
 const prefix = 'router'
 
 const asyncRequests = [] as const
 
+const historyState = window.history.state as { usr?: unknown } | null
 const localState = {
     location: {
         path: window.location.pathname || null,
-        state: window.history.state?.usr || null,
+        state: historyState?.usr ?? null,
     },
 }
 

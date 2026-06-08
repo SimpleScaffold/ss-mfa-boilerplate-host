@@ -1,3 +1,3 @@
 /// <reference types="vite/client" />
 
-declare const CESIUM_BASE_URL: string
+declare module '@repo/packages/fe-ui/styles'

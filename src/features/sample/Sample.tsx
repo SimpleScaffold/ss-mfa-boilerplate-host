@@ -1,13 +1,11 @@
 import { useNavigate } from 'react-router'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useAppDispatch } from 'src/globals/store/redux/reduxHooks.tsx'
-import { sampleAction } from 'src/features/sample/sampleReducer.ts'
+import { sampleAction } from 'src/features/sample/sampleReducer'
 import { toast } from 'react-toastify'
 
 const Sample = () => {
     const navigate = useNavigate()
-
-    const [cccc, setCccc] = useState(0)
 
     const dispatch = useAppDispatch()
 
@@ -26,7 +24,7 @@ const Sample = () => {
             <button onClick={notify}>Notify !</button>
             <button
                 onClick={() => {
-                    navigate('/')
+                    void navigate('/')
                 }}
             >
                 홈으로
@@ -34,21 +32,12 @@ const Sample = () => {
             <div>
                 <button
                     onClick={() => {
-                        navigate('/sample/sample')
+                        void navigate('/sample/2')
                     }}
                 >
                     sssssssssssss
                 </button>
             </div>
-            {cccc}
-            <button
-                onClick={() => {
-                    setCccc((state) => state + 1)
-                }}
-            >
-                bbbbbbbbbbbbbbbbbbbbbbb
-            </button>
-            sdfsdfd sdfsdfd
         </div>
     )
 }

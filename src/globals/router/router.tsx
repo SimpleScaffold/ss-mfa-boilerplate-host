@@ -1,63 +1,58 @@
+/// <reference types="vite/client" />
+
 import { createBrowserRouter, RouteObject } from 'react-router'
-import HomePage from 'src/pages/HomePage'
-import React from 'react'
+import React, { Suspense, lazy } from 'react'
+import type { ComponentType } from 'react'
 import NotFoundPage from 'src/pages/extra/NotFoundPage.tsx'
-import RemoteAppPage from 'src/pages/remotes/RemoteAppPage'
-import { getEnabledRemoteApps } from 'src/remotes'
+import MenuLayout from 'src/globals/layout/MenuLayout'
 
-// NOTE: https://reactrouter.com/start/data/routing
-// TODO: lazy loading 적용해야 할까? > 필요 없을거 같음
+type RouteModule = { default: ComponentType }
 
-const MODULES = import.meta.glob('src/pages/url/**/*.tsx', {
-    eager: true,
-}) as Record<string, { default: React.FC }>
+// HomePage lazy load로 초기 번들 분리
+const HomePage = lazy(() => import('src/pages/HomePage'))
+
+const MODULES = import.meta.glob<RouteModule>('src/pages/url/**/*.tsx')
 
 const generateRoutes = (
-    modules: Record<string, { default: React.FC }>,
+    modules: Record<string, () => Promise<RouteModule>>,
 ): RouteObject[] => {
-    return Object.entries(modules).map(([path, module]) => {
-        // 파일 경로에서 'src/pages/url/' 이후의 경로를 추출
+    return Object.entries(modules).map(([path, loadModule]) => {
         const routePath = path
-            .replace(/.*src\/pages\/url\//, '') // 'src/pages/url/' 부분 제거
-            .replace(/\.tsx$/, '') // 확장자 제거
-            .replace(/Page$/, '') // 'Page' 접미사 제거
-            .replace(/\[(.*?)]/g, ':$1') // [param] -> :param 변환
+            .replace(/.*src\/pages\/url\//, '')
+            .replace(/\.tsx$/, '')
+            .replace(/Page$/, '')
+            .replace(/\[(.*?)]/g, ':$1')
             .toLowerCase()
 
-        const Component = module.default
+        const LazyComponent = lazy(loadModule)
 
         return {
             path: `/${routePath}`,
-            element: <Component />,
+            element: (
+                <Suspense fallback={null}>
+                    <LazyComponent />
+                </Suspense>
+            ),
         }
     })
-}
-
-/**
- * 리모트 앱 라우트 생성
- *
- * config.ts에 정의된 리모트 앱 설정을 기반으로 라우트를 자동 생성합니다.
- */
-const generateRemoteAppRoutes = (): RouteObject[] => {
-    const enabledApps = getEnabledRemoteApps()
-
-    return enabledApps.map((app) => ({
-        path: app.routePath,
-        element: <RemoteAppPage />,
-    }))
 }
 
 const router = createBrowserRouter([
     {
         path: '/',
-        element: <HomePage />,
+        element: <MenuLayout />,
+        children: [
+            {
+                index: true,
+                element: (
+                    <Suspense fallback={null}>
+                        <HomePage />
+                    </Suspense>
+                ),
+            },
+            ...generateRoutes(MODULES),
+        ],
     },
-
-    ...generateRoutes(MODULES),
-
-    // 리모트 앱 라우트 자동 생성
-    ...generateRemoteAppRoutes(),
-
     {
         path: '*',
         element: <NotFoundPage />,

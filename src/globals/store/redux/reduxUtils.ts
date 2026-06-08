@@ -1,7 +1,13 @@
-import { createSlice, Slice, SliceCaseReducers } from '@reduxjs/toolkit'
+import {
+    createAction,
+    createSlice,
+    type PayloadAction,
+    type Slice,
+    type SliceCaseReducers,
+} from '@reduxjs/toolkit'
 import { AxiosResponse, isAxiosError } from 'axios'
 import { call, put, takeLatest } from 'redux-saga/effects'
-import { AnyAction, SagaIterator } from 'redux-saga'
+import { SagaIterator } from 'redux-saga'
 
 type AsyncState<DataType> = {
     data: DataType | null
@@ -102,12 +108,15 @@ const createRequestSaga = <PayloadType, ResponseType>(
     reducerName: string,
     api: (payload: PayloadType) => Promise<AxiosResponse<ResponseType>>,
 ) => {
-    return function* fetchApiData(action: AnyAction) {
+    return function* fetchApiData(
+        this: void,
+        action: PayloadAction<PayloadType>,
+    ) {
         try {
-            const response: AxiosResponse<ResponseType> = yield call(
+            const response = (yield call(
                 api,
                 action.payload,
-            )
+            )) as AxiosResponse<ResponseType>
 
             const { status, data } = response
 
@@ -176,16 +185,25 @@ export function reduxMaker<
     }
 
     //비동기 리듀서 생성
-    const asyncReducers = asyncRequests.reduce(
-        (reducers, { action, state: stateKey }) => ({
+    const asyncReducers = asyncRequests.reduce(function (
+        this: void,
+        reducers: Record<
+            string,
+            (state: typeof allInitialState) => typeof allInitialState
+        >,
+        { action, state: stateKey },
+    ) {
+        return {
             ...reducers,
-            [action]: (state: typeof asyncState) => ({
+            [action]: (state: typeof allInitialState) => ({
                 ...state,
-                [stateKey]: reducerUtils.loading(state[stateKey]?.data),
+                [stateKey]: reducerUtils.loading(
+                    (state[stateKey] as AsyncState<unknown> | undefined)
+                        ?.data ?? null,
+                ),
             }),
-        }),
-        {},
-    )
+        }
+    }, {})
 
     const slice = createSlice({
         name: prefix,
@@ -194,11 +212,14 @@ export function reduxMaker<
             initializeAll: () => {
                 return allInitialState
             },
-            initialize: (state, action) => {
+            initialize: (
+                state,
+                action: PayloadAction<keyof typeof allInitialState>,
+            ) => {
                 const key = action.payload
                 return {
                     ...state,
-                    [key]: allInitialState[key as keyof typeof allInitialState],
+                    [key]: allInitialState[key],
                 }
             },
             ...localReducers,
@@ -207,41 +228,39 @@ export function reduxMaker<
         extraReducers: (builder) => {
             asyncRequests.forEach((request) => {
                 const { action, state: stateKey } = request
+                const success = createAction<unknown>(
+                    `${prefix}/${action}Success`,
+                )
+                const fail = createAction<string>(`${prefix}/${action}Fail`)
 
                 builder
-                    .addCase(
-                        `${prefix}/${action}Success`,
-                        (state, action: AnyAction) => {
-                            return {
-                                ...state,
-                                [stateKey]: reducerUtils.success(
-                                    action.payload,
-                                ),
-                            }
-                        },
-                    )
-                    .addCase(
-                        `${prefix}/${action}Fail`,
-                        (state, action: AnyAction) => {
-                            return {
-                                ...state,
-                                [stateKey]: reducerUtils.error(
-                                    state[stateKey]?.data,
-                                    action.payload,
-                                ),
-                            }
-                        },
-                    )
+                    .addCase(success, (state, action) => {
+                        return {
+                            ...state,
+                            [stateKey]: reducerUtils.success(action.payload),
+                        }
+                    })
+                    .addCase(fail, (state, action) => {
+                        return {
+                            ...state,
+                            [stateKey]: reducerUtils.error(
+                                (
+                                    state[stateKey] as
+                                        | AsyncState<unknown>
+                                        | undefined
+                                )?.data ?? null,
+                                action.payload,
+                            ),
+                        }
+                    })
             })
         },
     }) as Slice<typeof allInitialState>
 
-    const saga = function* () {
+    const saga = function* (this: void) {
         for (const { action, api } of asyncRequests) {
-            yield takeLatest(
-                `${prefix}/${action}`,
-                createRequestSaga(prefix, action, api),
-            )
+            const worker = createRequestSaga(prefix, action, api)
+            yield takeLatest(`${prefix}/${action}`, worker)
         }
     } as () => SagaIterator
 
