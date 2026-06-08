@@ -1,6 +1,8 @@
 import https from 'node:https'
 import type { ProxyOptions } from 'vite'
 
+import { lodDevServerProxy } from '../src/globals/cesium/lod/config/lodDevProxy'
+
 /**
  * OSM 업스트림을 IPv4로 고정합니다.
  * WSL2·일부 네트워크에서 IPv6 경로가 막히면 Node 프록시가 `ETIMEDOUT`(internalConnectMultiple)으로 끊깁니다.
@@ -18,6 +20,7 @@ const osmUpstreamAgent = new https.Agent({
  * `NODE_OPTIONS=--dns-result-order=ipv4first` 로 실행해 볼 수 있습니다.
  */
 export const devServerProxy: Record<string, ProxyOptions> = {
+    ...lodDevServerProxy,
     '/osm-tiles': {
         target: 'https://tile.openstreetmap.org',
         changeOrigin: true,
