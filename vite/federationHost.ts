@@ -1,10 +1,8 @@
 import type { RemoteConfig } from '../../../../../config'
-import type { RemoteExposePaths } from './mfRemoteMenu'
 
 /** @module-federation/vite Host remotes — Vite 원격은 ESM remoteEntry이므로 `type: 'module'` 필수 (미지정 시 classic script로 로드되어 import 구문 오류). */
 export function buildFederationRemotes(
     remoteConfigs: RemoteConfig[],
-    remoteExposePaths: RemoteExposePaths,
 ): Record<
     string,
     {
@@ -27,7 +25,7 @@ export function buildFederationRemotes(
     > = {}
     const useProdEntry = process.env.NODE_ENV === 'production'
     for (const r of remoteConfigs) {
-        if (!r.name || !remoteExposePaths[r.name]) continue
+        if (!r.name) continue
         const base = (r.url ?? '').replace(/\/$/, '')
         if (!base) continue
         const suffix = useProdEntry

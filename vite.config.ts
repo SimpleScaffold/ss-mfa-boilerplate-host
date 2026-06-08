@@ -62,7 +62,7 @@ export default defineConfig(async (): Promise<UserConfig> => {
         remoteNames,
     )
     const modalExpansionModulePaths = getModalExpansionModulePaths(remoteNames)
-    const remotes = buildFederationRemotes(remoteConfigs, remoteExposePaths)
+    const remotes = buildFederationRemotes(remoteConfigs)
 
     return {
         plugins: [

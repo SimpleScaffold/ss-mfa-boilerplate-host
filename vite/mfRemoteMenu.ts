@@ -13,7 +13,10 @@ export const REMOTE_MAIN_EXPOSES: Record<
     string,
     { path: string; exposeName: string }
 > = {
-    remote: { path: '/remote', exposeName: 'Remote' },
+    'ss-mfa-boilerplate-remote': {
+        path: '/ss-mfa-boilerplate-remote',
+        exposeName: 'ss-mfa-boilerplate-remote',
+    },
 }
 
 /**
